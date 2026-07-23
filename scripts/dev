@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# brain — the blessed entrypoint. All state-changing ops go through here so the
+# ledger gate always runs. Adapted from the ledger + BDG regime (ligature/stol).
+#
+#   scripts/dev status            counts, WIP, gate-clean (run at session start)
+#   scripts/dev check             reconcile ledger <-> code (the gate)
+#   scripts/dev render            regenerate planning/TODO.md from the ledger
+#   scripts/dev now               authoritative ISO timestamp (never write dates by hand)
+#   scripts/dev commit "msg"      build -> stamp -> render -> check -> add -> commit
+#   scripts/dev push              check, then push
+#
+# "build" here is a syntax check (no compile step). Commits on the default
+# branch (master) are allowed — this is a single-branch tooling repo.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+TRAILER="Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"  # ADAPT: your co-author trailer
+log() { printf '\033[1m▸ %s\033[0m\n' "$*"; }
+die() { printf '\033[31m✗ %s\033[0m\n' "$*" >&2; exit 1; }
+
+do_build() {
+  # norns has no compile step. "build" = syntax-check the Lua sources (and this
+  # script). If luac is available it parse-checks each .lua; otherwise skipped
+  # gracefully (parse-checking still happens on-device at load).
+  bash -n scripts/dev || die "scripts/dev syntax error"
+  if command -v luac >/dev/null 2>&1; then
+    for f in $(git ls-files '*.lua'); do
+      luac -p "$f" || die "lua syntax: $f"
+    done
+  fi
+}
+
+case "${1:-}" in
+  build)  do_build ;;
+  check)  python3 tools/ledger.py check ;;
+  render) python3 tools/ledger.py render ;;
+  status) python3 tools/ledger.py status ;;
+  now)    python3 tools/ledger.py now ;;
+  stamp)  python3 tools/ledger.py stamp ;;
+  commit)
+    shift; msg="${1:-}"; [ -n "$msg" ] || die "commit needs a message"
+    log "build (syntax)"; do_build
+    log "stamp";  python3 tools/ledger.py stamp
+    log "render"; python3 tools/ledger.py render
+    log "check";  python3 tools/ledger.py check
+    git add -A
+    git commit -m "$msg" -m "$TRAILER"
+    ;;
+  push)   python3 tools/ledger.py check; git push ;;
+  *) die "usage: scripts/dev {build|check|render|status|now|stamp|commit \"msg\"|push}" ;;
+esac

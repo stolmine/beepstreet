@@ -1,0 +1,253 @@
+# beepstreet ledger — the single machine-readable source of truth for work items.
+#
+# This file is TRUTH. `planning/TODO.md` is GENERATED from it (`scripts/dev
+# render`) — never hand-edit that doc. The gate (`scripts/dev check`, run on
+# every commit) reconciles this ledger against the code and refuses drift.
+#
+# Each item is one INDEPENDENTLY-VERIFIABLE behavior. No test harness exists on
+# norns, so verify.kind is "manual" (attested on-device) or "screenshot".
+#
+# Fields: id, title, status(todo|wip|done|blocked), area (see tools/ledger.py
+# AREAS), verify{kind,ref}, attested (required for done non-test items),
+# anchor (optional [beep:<id>] tag in lib/), links, note. created/modified are
+# machine-written by the gate — never by hand.
+
+# ── infra ─────────────────────────────────────────────────────────────────
+[[item]]
+id = "ledger-regime"
+title = "Ledger + gate regime stood up; scripts/dev check exits 0"
+status = "done"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "run `scripts/dev check` — exits 0; `scripts/dev status` reports counts" }
+attested = "2026-07-23: ported ledger regime from brain templates/ledger; adapted AREAS/prefix (beep) for norns+Lua; check green."
+note = "beepstreet federates into brain once its remote is in brain/agent/repos.txt."
+
+[[item]]
+id = "script-scaffold"
+title = "Thin beepstreet.lua boots on device and requires lib/ modules"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "load beepstreet on norns; reaches an idle UI without error" }
+note = "Keep beepstreet.lua a bootstrap; real code in lib/*.lua per modular-file rule."
+
+[[item]]
+id = "params-persistence"
+title = "norns params defined + pset save/load restores full instrument state"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "save a pset, reload script, load pset — voices/patterns match" }
+
+[[item]]
+id = "clock-transport"
+title = "Clock/transport drives sequencer at 32nd-note resolution"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "tempo change tracks; steps fire on the 32nd grid" }
+note = "4x8 step grid = 32nd resolution, every other step a 16th. Steal timing model from gladiola."
+
+[[item]]
+id = "lfo-automation"
+title = "Assignable LFOs modulate voice params (X/Y/Z, vol, pan)"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "assign an LFO to a macro; hear/see cyclic modulation" }
+
+# ── engine (SuperCollider DSP) ──────────────────────────────────────────────
+[[item]]
+id = "voice-click1"
+title = "Click 1 voice: SC synthdef with X/Y/Z macro inputs"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger click1; X/Y/Z sweep audibly changes timbre" }
+
+[[item]]
+id = "voice-click2"
+title = "Click 2 voice: second click character, same X/Y/Z axes"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger click2; distinct from click1; macros respond" }
+
+[[item]]
+id = "voice-beep"
+title = "Beep voice: sine ping with X/Y/Z macros"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger beep; pitched sine ping; macros shape it" }
+
+[[item]]
+id = "voice-additive"
+title = "Additive-chord voice with X/Y/Z macros"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger additive; chordal partials; macros vary spectrum" }
+
+[[item]]
+id = "voice-noise"
+title = "Noise voice with X/Y/Z macros"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger noise; macros vary colour/shape" }
+
+[[item]]
+id = "voice-kick"
+title = "Kick-ish voice with X/Y/Z macros"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger kick; percussive body; macros vary tone/decay" }
+
+[[item]]
+id = "voice-bass"
+title = "Bass voice with X/Y/Z macros"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "trigger bass; sustained low tone; macros respond" }
+
+# ── voice model ─────────────────────────────────────────────────────────────
+[[item]]
+id = "xyz-macro-lattice"
+title = "X/Y/Z macros select coordinates from a per-voice interacting lattice"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "voice"
+verify = { kind = "manual", ref = "same three axes on every voice map to voice-specific parameter permutations" }
+note = "Core UX conceit: X/Y/Z are uniform axis names; each voice defines what a lattice coordinate means."
+
+[[item]]
+id = "pitch-select-grid"
+title = "Discrete pitch selected via grid (not a knob)"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "voice"
+verify = { kind = "manual", ref = "grid selection sets a discrete pitch per voice/step" }
+
+# ── sequencing ──────────────────────────────────────────────────────────────
+[[item]]
+id = "step-sequencer"
+title = "4x8 grid step sequencer: tap to instantiate a step"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "tapping a pad toggles a step that then triggers the voice in time" }
+
+[[item]]
+id = "param-lock"
+title = "Hold a step + strips to param-lock X/Y/Z for that step"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "held step captures strip values; unheld strip edits are global" }
+note = "Steal the hold-to-plock interaction pattern from gladiola."
+
+[[item]]
+id = "adsr-mix-microgrid"
+title = "Micro-grid edits attack/decay/volume/pan (3 settings each)"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "soft|normal|loud, short|normal|long attack/decay, left|mid|right pan; per-step when a step is held, else global" }
+
+[[item]]
+id = "patterns-per-voice"
+title = "Multiple patterns stored per voice"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "switch patterns for one voice; each recalls its own steps/plocks" }
+
+[[item]]
+id = "pattern-set-seq"
+title = "Pattern-set sequencing chains patterns across voices"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "define a set order; playback advances through it" }
+
+# ── grid ────────────────────────────────────────────────────────────────────
+[[item]]
+id = "grid-voice-page"
+title = "Voice page layout: 4x8 steps + three 16-pad strips for X/Y/Z"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "grid"
+verify = { kind = "screenshot", ref = "grid photo showing step block + three param strips" }
+note = "Also room for the attack/decay/vol/pan micro-grid. This layout is the hard part."
+
+# ── ui ──────────────────────────────────────────────────────────────────────
+[[item]]
+id = "ui-page-routing"
+title = "norns screen routes between voice pages, mix page, and pattern view"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "ui"
+verify = { kind = "manual", ref = "navigate all pages via keys/encoders without dead ends" }
+
+# ── mix ─────────────────────────────────────────────────────────────────────
+[[item]]
+id = "mix-page"
+title = "Dedicated mix page: per-voice volume and pan"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "mix"
+verify = { kind = "manual", ref = "adjust a voice's level/pan on the mix page; audible" }
+
+[[item]]
+id = "per-step-mix"
+title = "Per-step volume/pan variation available from voice pages"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "mix"
+verify = { kind = "manual", ref = "plock vol/pan on a step; differs from the voice's mix-page default" }
+
+# ── fx ──────────────────────────────────────────────────────────────────────
+[[item]]
+id = "per-voice-sends"
+title = "Per-voice effect sends"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "fx"
+verify = { kind = "manual", ref = "raise a voice's send; hear it in the effect bus" }
+
+[[item]]
+id = "global-fx"
+title = "Global effect bus on the master"
+status = "todo"
+modified = "2026-07-23T17:03:19-05:00"
+created = "2026-07-23T17:03:19-05:00"
+area = "fx"
+verify = { kind = "manual", ref = "global effect audibly processes the full mix" }
