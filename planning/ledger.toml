@@ -94,10 +94,11 @@ verify = { kind = "manual", ref = "trigger beep; pitched sine ping; macros shape
 id = "voice-additive"
 title = "Additive-chord voice with X/Y/Z macros"
 status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+modified = "2026-07-23T17:59:09-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger additive; chordal partials; macros vary spectrum" }
+note = "X = consonance↔dissonance harmonic-complexity sweep (target dissonance .40-.49, full range reachable). See docs/macro-model.md + docs/sonic-targets.md."
 
 [[item]]
 id = "voice-noise"
@@ -121,21 +122,22 @@ verify = { kind = "manual", ref = "trigger kick; percussive body; macros vary to
 id = "voice-bass"
 title = "Bass voice with X/Y/Z macros"
 status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+modified = "2026-07-23T17:59:09-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger bass; sustained low tone; macros respond" }
+note = "Reference recipe: two detuned sines + touch cross-FM, steep-log VCA (smooth yet defined); long gate + hard release = drone-that-cuts. Worked X/Y/Z decomposition in docs/macro-model.md."
 
 # ── voice model ─────────────────────────────────────────────────────────────
 [[item]]
 id = "xyz-macro-lattice"
 title = "X/Y/Z macros select coordinates from a per-voice interacting lattice"
 status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+modified = "2026-07-23T17:59:09-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "voice"
 verify = { kind = "manual", ref = "same three axes on every voice map to voice-specific parameter permutations" }
-note = "Core UX conceit: X/Y/Z are uniform axis names; each voice defines what a lattice coordinate means."
+note = "Core UX conceit: X/Y/Z are uniform axis names; each voice defines what a lattice coordinate means. Macros = trajectories through param space, focus zones as plateaus, lattice-quantized for recall. Full design: docs/macro-model.md. Sonic targets: docs/sonic-targets.md."
 
 [[item]]
 id = "pitch-select-grid"
