@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**27 items** — 6 done, 3 wip, 18 todo. *Rendered 2026-07-23.*
+**29 items** — 6 done, 4 wip, 19 todo. *Rendered 2026-07-23.*
 
 ## Engine (SuperCollider DSP)
 
@@ -23,6 +23,7 @@ check`): a `done` item must have a real test or its named artifact.*
 
 | | id | item | verify |
 |---|---|---|---|
+| ~ | `multi-voice` | Seven independent voices play at once; select current voice on the global row | manual · 2026-07-23 |
 |   | `key-scale-select` | Global row control to set key (root) + scale | manual · 2026-07-23 |
 |   | `keyboard-chromatic` | Pitch keyboard offers chromatic vs scale-quantized mode | manual · 2026-07-23 |
 |   | `xyz-macro-lattice` | X/Y/Z macros select coordinates from a per-voice interacting lattice | manual · 2026-07-23 |
@@ -33,6 +34,7 @@ check`): a `done` item must have a real test or its named artifact.*
 | | id | item | verify |
 |---|---|---|---|
 | ~ | `adsr-mix-microgrid` | Per-voice micro-fader quadrant (vol/pan/prob/…), per-step-plockable | manual · 2026-07-23 |
+|   | `micro-faders-perf` | Remaining micro-fader columns: clock-div, length, send, transpose | manual · 2026-07-23 |
 |   | `pattern-set-seq` | Pattern-set sequencing chains patterns across voices | manual · 2026-07-23 |
 |   | `patterns-per-voice` | Multiple patterns stored per voice | manual · 2026-07-23 |
 | ✓ | `param-lock` | Hold a step + strips to param-lock X/Y/Z for that step | manual *(attested)* · 2026-07-23 |

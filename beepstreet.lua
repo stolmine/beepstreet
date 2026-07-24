@@ -1,55 +1,74 @@
 -- beepstreet — norns + grid instrument for microsound / glitch composition.
 --
 -- Thin entry point (bootstrap only). Real logic lives in lib/*.lua and
--- lib/Engine_Beepstreet.sc. See docs/macro-model.md and docs/sonic-targets.md.
+-- lib/Engine_Beepstreet.sc. See docs/macro-model.md, docs/sonic-targets.md,
+-- docs/grid-layout.md.
 --
--- Param-strips + hold-to-plock: three grid strips edit X/Y/Z (global, or locked to
--- a held step). The sequencer applies per-step plocks over the global macro.
+-- Multi-voice: seven independent voices sequence at once; the grid page edits the
+-- current one (switch on the global row). All types trigger the \beep engine for
+-- now — real per-type SynthDefs are the voice-* items.
 
 engine.name = 'Beepstreet'
 
 local musicutil = require 'musicutil'
-local voices = include('beepstreet/lib/voices')
+local synth  = include('beepstreet/lib/voices')   -- macro -> engine-param resolvers
 local Seq    = include('beepstreet/lib/seq')
 local gridui = include('beepstreet/lib/gridui')
 
-local g = grid.connect()          -- grid-safe: returns an object even with none attached
-local xyz = { x = 0.30, y = 0.30, z = 0.00 }   -- GLOBAL macro coordinate
-local voice = { vol = 1.0, pan = 0.0, prob = 1.0,   -- per-voice micro params (quadrant faders)
-                pitch = 48, root = 24, scale = 'Natural Minor' }  -- pitch keyboard state
-local sel = 'x'                   -- which axis E3 edits
-local pattern = {}                -- 32 steps: false = off, table = on (may carry plocks)
+local g = grid.connect()
+
+local NV = 7
+local VTYPE = { 'click1', 'click2', 'beep', 'additive', 'noise', 'kick', 'bass' }
+local VDEF_PITCH = { 60, 55, 48, 51, 43, 36, 31 }   -- spread so lines are distinguishable
+local voices = {}
+local cur = 1
+local sel = 'x'                   -- which macro axis E3 edits
 local seq
 local screen_dirty = true
 
 local AXES = { 'x', 'y', 'z' }
 local YROW = { x = 34, y = 44, z = 54 }
 
--- resolve + trigger: per-step plocks (x/y/z, vol/pan/prob) over global/per-voice
-local function do_trig(st)
-  local m = xyz
-  local vol, pan, pitch = voice.vol, voice.pan, voice.pitch
+local function new_voice(vtype, pitch)
+  local v = { type = vtype, vol = 1.0, pan = 0.0, prob = 1.0,
+              pitch = pitch, root = 24, scale = 'Natural Minor',
+              macro = { x = 0.30, y = 0.30, z = 0.0 }, pattern = {} }
+  for i = 1, 32 do v.pattern[i] = false end
+  return v
+end
+
+local function V() return voices[cur] end
+
+-- trigger one voice's step (st = step table, or nil for a manual hit)
+local function trig_voice(v, st)
+  local m = v.macro
+  local vol, pan, pitch = v.vol, v.pan, v.pitch
   if type(st) == 'table' then
-    local prob = st.prob or voice.prob                 -- probability gates sequenced steps only
+    local prob = st.prob or v.prob
     if prob < 1 and math.random() > prob then return end
-    m = { x = st.x or xyz.x, y = st.y or xyz.y, z = st.z or xyz.z }
+    m = { x = st.x or v.macro.x, y = st.y or v.macro.y, z = st.z or v.macro.z }
     if st.vol ~= nil then vol = st.vol end
     if st.pan ~= nil then pan = st.pan end
     if st.pitch ~= nil then pitch = st.pitch end
   end
-  local p = voices.resolve('beep', m)
+  local p = synth.resolve(v.type, m)
   engine.trig(musicutil.note_num_to_freq(pitch), p.amp * vol, p.atk, p.rel, p.curve, pan, p.detune, p.fmIndex)
 end
 
 function init()
-  for i = 1, 32 do pattern[i] = false end   -- start empty; author on the grid
+  for i = 1, NV do voices[i] = new_voice(VTYPE[i], VDEF_PITCH[i]) end
 
   seq = Seq.new{
-    pattern = pattern,
-    on_trig = function(st) do_trig(st) end,
-    on_step = function(_) screen_dirty = true; gridui.redraw() end,
+    on_step = function(pos)
+      for i = 1, NV do
+        local st = voices[i].pattern[pos]
+        if st then trig_voice(voices[i], st) end
+      end
+      screen_dirty = true
+      gridui.redraw()
+    end,
   }
-  gridui.init(g, pattern, seq, xyz, voice)
+  gridui.init(g, seq, V, function(i) cur = i end, NV)
   gridui.redraw()
 
   clock.run(function()
@@ -61,7 +80,6 @@ function init()
   screen_dirty = true
 end
 
--- transport callbacks — also fired by external MIDI / Ableton Link start/stop
 function clock.transport.start() seq:start() end
 function clock.transport.stop()  seq:stop() end
 function clock.transport.reset() seq:reset() end
@@ -69,7 +87,7 @@ function clock.transport.reset() seq:reset() end
 function key(n, z)
   if z == 1 then
     if n == 2 then seq:toggle()
-    elseif n == 3 then do_trig(nil) end
+    elseif n == 3 then trig_voice(V(), nil) end
     screen_dirty = true
   end
 end
@@ -82,7 +100,8 @@ function enc(n, d)
     for k, v in ipairs(AXES) do if v == sel then i = k end end
     sel = AXES[util.clamp(i + d, 1, #AXES)]
   elseif n == 3 then
-    xyz[sel] = util.clamp(xyz[sel] + d / 50, 0, 1)
+    local v = V()
+    v.macro[sel] = util.clamp(v.macro[sel] + d / 50, 0, 1)
   end
   screen_dirty = true
 end
@@ -94,7 +113,8 @@ end
 function redraw()
   screen.clear()
   screen.level(15); screen.move(4, 10); screen.text('beepstreet')
-  -- transport / mode line
+  screen.level(3);  screen.move(66, 10); screen.text('v' .. cur .. ' ' .. V().type)
+  -- transport line
   screen.level(seq and seq:is_running() and 15 or 3)
   screen.move(4, 21); screen.text(seq and seq:is_running() and '\u{25b6}' or '\u{25a0}')
   screen.level(3)
@@ -102,12 +122,12 @@ function redraw()
   local held = gridui.held()
   screen.move(70, 21)
   if held then
-    local st = pattern[held]
-    screen.text('s' .. held .. ' ' .. musicutil.note_num_to_name((st and st.pitch) or voice.pitch, true))
+    local st = V().pattern[held]
+    screen.text('s' .. held .. ' ' .. musicutil.note_num_to_name((st and st.pitch) or V().pitch, true))
   else
-    screen.text(musicutil.note_num_to_name(voice.pitch, true))
+    screen.text(musicutil.note_num_to_name(V().pitch, true))
   end
-  -- macro axes (show what the strips are editing: held plock or global)
+  -- macro axes (of the current voice)
   for _, ax in ipairs(AXES) do
     local yy = YROW[ax]
     screen.level(sel == ax and 15 or 3)
@@ -115,7 +135,7 @@ function redraw()
     screen.move(20, yy); screen.text(string.format('%.2f', gridui.axis_value(ax)))
     screen.rect(48, yy - 4, 72 * gridui.axis_value(ax), 3); screen.fill()
   end
-  screen.level(3); screen.move(4, 62); screen.text('steps · faders · strips · hold=plock')
+  screen.level(3); screen.move(4, 62); screen.text('row 8: play · reset · voices')
   screen.update()
 end
 

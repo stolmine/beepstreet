@@ -132,6 +132,26 @@ note = "Reference recipe: two detuned sines + touch cross-FM, steep-log VCA (smo
 
 # ── voice model ─────────────────────────────────────────────────────────────
 [[item]]
+id = "multi-voice"
+title = "Seven independent voices play at once; select current voice on the global row"
+status = "wip"
+modified = "2026-07-23T20:51:59-05:00"
+created = "2026-07-23T20:51:59-05:00"
+area = "voice"
+verify = { kind = "manual", ref = "all 7 voices sequence simultaneously; row-8 keys switch which voice the page edits" }
+note = "Each voice = independent state {type, macro x/y/z, vol/pan/prob/pitch/root/scale, 32-step pattern}. Shared clock advances all (per-voice clock-div/length is micro-faders-perf). All types trigger the \\beep engine for now; real SynthDefs are the voice-* items. Voice select on row 8 (cols 3-9)."
+
+[[item]]
+id = "micro-faders-perf"
+title = "Remaining micro-fader columns: clock-div, length, send, transpose"
+status = "todo"
+modified = "2026-07-23T20:51:59-05:00"
+created = "2026-07-23T20:51:59-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "each column fader sets its per-voice param; clock-div/length give polymeter" }
+note = "Adds to the quadrant (cols 12-15) beyond vol/pan/prob. clock-div + pattern-length = per-voice polymeter (needs per-voice pos in seq). send -> fx bus (needs fx). transpose -> voice pitch offset. clock-div/length are per-voice-only (inert on step-hold). See docs/grid-layout.md."
+
+[[item]]
 id = "xyz-macro-lattice"
 title = "X/Y/Z macros select coordinates from a per-voice interacting lattice"
 status = "todo"
