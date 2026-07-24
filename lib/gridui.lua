@@ -23,6 +23,10 @@ local g, pattern, seq_ref, macro
 local held_step = nil
 local plock_touched = false
 
+local HOLD_ZERO_S = 0.4          -- hold the lowest strip key this long -> value 0
+local hold_id = 0                -- monotonic token so stale hold timers no-op
+local zero_pending = {}          -- axis -> token of the in-flight hold
+
 local function ncols() return (g and g.cols and g.cols > 0) and g.cols or 16 end
 local function step_of(x, y) return (y - 1) * STEP_COLS + x end
 
@@ -71,8 +75,25 @@ function GridUI.key(x, y, z)
   end
   -- strips
   for _, ax in ipairs(AXES) do
-    if z == 1 and y == STRIP_ROW[ax] and x >= 1 and x <= n then
-      set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, x))
+    if y == STRIP_ROW[ax] and x >= 1 and x <= n then
+      if z == 1 then
+        set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, x))
+        if x == 1 then                          -- hold lowest key -> drop to zero
+          hold_id = hold_id + 1
+          local tok = hold_id
+          zero_pending[ax] = tok
+          clock.run(function()
+            clock.sleep(HOLD_ZERO_S)
+            if zero_pending[ax] == tok then
+              zero_pending[ax] = nil
+              set_axis(ax, 0)
+              GridUI.redraw()
+            end
+          end)
+        end
+      elseif x == 1 then
+        zero_pending[ax] = nil                   -- released before threshold -> keep the fine tap
+      end
       GridUI.redraw()
       return true
     end
