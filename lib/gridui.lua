@@ -20,6 +20,7 @@ local STRIP_ROW = { x = 5, y = 6, z = 7 }
 local AXES = { 'x', 'y', 'z' }
 local GLOBAL_ROW = 8
 local VSEL_COL0 = 3            -- first voice-select key on row 8
+local COPY_COL, PASTE_COL = 15, 16   -- while a step is held: copy / paste on the global bar
 
 local QUAD = {
   { col = 9,  key = 'vol',  mode = 'uni', step = true },
@@ -39,6 +40,7 @@ local hold_id = 0
 local zero_pending = {}
 local kb_active = false
 local kb_scale, kb_base = nil, nil
+local clipboard = nil            -- copied step data (false = off, or a plock table)
 
 -- current-voice accessors
 local function P() return vfn().pattern end
@@ -102,6 +104,13 @@ end
 local function clear_hold()
   held_step, plock_touched = nil, false
   kb_active, kb_scale, kb_base = false, nil, nil
+end
+
+-- deep-ish copy of a step (false = off, else a flat plock table)
+local function copy_step(st)
+  if type(st) ~= 'table' then return false end
+  local c = {}; for k, v in pairs(st) do c[k] = v end
+  return c
 end
 
 -- ── input ─────────────────────────────────────────────────────────────────────
@@ -171,7 +180,11 @@ function GridUI.key(x, y, z)
   end
   -- global row
   if z == 1 and y == GLOBAL_ROW then
-    if kb_active then
+    if held_step and x == COPY_COL then
+      clipboard = copy_step(P()[held_step]); plock_touched = true
+    elseif held_step and x == PASTE_COL and clipboard ~= nil then
+      P()[held_step] = copy_step(clipboard); plock_touched = true
+    elseif kb_active then
       local po, mb = Keyboard.per_octave(kb_scale), Keyboard.max_base(kb_scale)
       if x == 1 then kb_base = util.clamp(kb_base - po, 1, mb)
       elseif x == 2 then kb_base = util.clamp(kb_base + po, 1, mb) end
@@ -228,6 +241,11 @@ function GridUI.redraw()
       local col = VSEL_COL0 + i - 1
       if col <= n then g:led(col, GLOBAL_ROW, i == cur_local and 12 or 4) end
     end
+  end
+  -- copy/paste while a step is held (works alongside octave or transport)
+  if held_step and COPY_COL <= n then
+    g:led(COPY_COL, GLOBAL_ROW, 8)
+    g:led(PASTE_COL, GLOBAL_ROW, (clipboard ~= nil) and 12 or 3)
   end
   g:refresh()
 end
