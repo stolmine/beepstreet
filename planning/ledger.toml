@@ -318,3 +318,104 @@ modified = "2026-07-23T17:03:19-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "fx"
 verify = { kind = "manual", ref = "global effect audibly processes the full mix" }
+
+# ── 2026-07-24 direction (design brain-dump; research dispatched) ──────────────
+[[item]]
+id = "hard-gate-env"
+title = "True hard-gate (rectangular) envelope for sharp on/off sections"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "at the sharp end of Y a voice cuts on/off like a gate, no smoothing" }
+note = "These artists use noise/voices as contrasting SECTIONS that snap in/out (everything else drops out momentarily). Y's sharp end should be a genuine rectangular gate (near-zero edges) so cuts are clinical. Applies to noise especially, and all voices."
+
+[[item]]
+id = "y-snap-grid"
+title = "Y strip coarse stops snap to musical 1/16-note increments"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "grid"
+verify = { kind = "manual", ref = "Y strip coarse taps land on 1/16-note durations against the 1-bar grid" }
+note = "We address a 1-bar 32nd grid, so Y (gate/window length) coarse stops should quantize to 1/16-note increments when set on the grid (fine re-tap still continuous). Musical gate lengths."
+
+[[item]]
+id = "noise-models"
+title = "Noise: multiple algorithms interpolable through a macro"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "a macro morphs the noise voice through several distinct noise models" }
+note = "Crib from er-301-habitat Rauschen (mods/spreadsheet/Rauschen.cpp/.h/.lua) — macro-parametric noise unit. Wanted models: crackle, white, henon, cellular, particle, velvet. Interpolate THROUGH the models on a macro (not just select). Research agent extracting algorithms -> SC. Extends voice-noise."
+
+[[item]]
+id = "additive-motion-stereo"
+title = "Additive: drifting detune/phase, stereo width, darker/brighter, consonance"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "additive gains slow inter-partial drift, a stereo-width macro, and darker/brighter + more/less-consonant control" }
+note = "Drifting detune and/or phase offset between partials (quaver/life); stereo width on a macro; chords must go darker/brighter and more/less consonant. Reference MI Plaits chord_engine (er-301-habitat/eurorack/plaits/dsp/engine/chord_engine.cc, dsp/chords/chord_bank.h) for chord structure/morph. Research agent extracting -> SC. Extends voice-additive."
+
+[[item]]
+id = "combinatoric-macros"
+title = "Combinatoric macro space: parameters from X×Y×Z combinations"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "voice"
+verify = { kind = "manual", ref = "some params respond to combinations of X/Y/Z, not just one axis; more emergent parametric space" }
+note = "Idea: map extra parameters to COMBINATIONS of X/Y/Z (combinatoric positioning), not just literal per-axis positions — richer emergent space from the same three controls. Extends xyz-macro-lattice / docs/macro-model.md."
+
+[[item]]
+id = "voice8-bretschneider"
+title = "Possible 8th voice: quavering chord-ish background (Bretschneider)"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "a quavering sustained chord-ish texture voice exists (or folded into additive)" }
+note = "Target: the background quavering chord-ish sound in Bretschneider 'The Day It Rained Forever' (Looping I-VI). Own 8th voice OR folded into additive. Research agent analyzing the track for the quaver mechanism + timbre. Note: 8th voice needs voice-select/state to scale (currently NV=7)."
+
+[[item]]
+id = "step-copy-paste"
+title = "Copy/paste steps via the global bar while holding a step"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "hold a step, hit copy on the global bar; paste its data (plocks/pitch) onto another step" }
+note = "While holding a step, a copy button appears on the global row (row 8); copies the held step's full data (on/off + x/y/z/vol/pan/prob/pitch plocks); paste onto another step. Speeds pattern building."
+
+[[item]]
+id = "step-tap-hold-debounce"
+title = "Bug: holding a step with no plock edit deletes it on release"
+status = "wip"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "seq"
+verify = { kind = "manual", ref = "hold an on-step, make no edit, release -> step stays on (only a quick tap toggles)" }
+note = "Fixed 2026-07-24 (commit 87d3e95): toggle only fires on a genuine quick tap (< KB_HOLD_S); a deliberate hold never toggles. Awaiting on-device confirm."
+
+[[item]]
+id = "kick-breadth"
+title = "Kick: more breadth — tonal element, bare-vs-compound range"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "kick sweeps from bare tonal bass stab to compound high-partial hit; multiple usable settings" }
+note = "Current kick has ~one good setting (low punch, short decay). Ikeda kicks have a TONAL element and are either bare simple bass stabs (little EG) or compound high-partial-count additive hits (analyze data.reflex — research agent on it). Adopt the Tessera modal voice (er-301-habitat/mods/spreadsheet/Tessera.*) for the pitched modal body. Extends voice-kick."
+
+[[item]]
+id = "modulation"
+title = "Modulation system — where LFO/env/random routes to macros/params"
+status = "todo"
+modified = "2026-07-24T10:04:32-05:00"
+created = "2026-07-24T10:04:32-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "a modulation source can be routed to a macro/param and audibly moves it" }
+note = "Design open: where modulation fits (per-voice LFO on X/Y/Z, drift, S&H). Relates to lfo-automation. Bretschneider uses S&H chaos -> pitch/timbre; drifting detune (additive-motion-stereo) is one instance. Decide the routing model."

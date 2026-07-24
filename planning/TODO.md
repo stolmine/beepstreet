@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**30 items** — 7 done, 11 wip, 12 todo. *Rendered 2026-07-24.*
+**40 items** — 7 done, 12 wip, 21 todo. *Rendered 2026-07-24.*
 
 ## Engine (SuperCollider DSP)
 
@@ -18,12 +18,18 @@ check`): a `done` item must have a real test or its named artifact.*
 | ~ | `voice-click2` | Click 2 voice: second click character, same X/Y/Z axes | manual · 2026-07-23 |
 | ~ | `voice-kick` | Kick-ish voice with X/Y/Z macros | manual · 2026-07-23 |
 | ~ | `voice-noise` | Noise voice with X/Y/Z macros | manual · 2026-07-23 |
+|   | `additive-motion-stereo` | Additive: drifting detune/phase, stereo width, darker/brighter, consonance | manual · 2026-07-24 |
+|   | `hard-gate-env` | True hard-gate (rectangular) envelope for sharp on/off sections | manual · 2026-07-24 |
+|   | `kick-breadth` | Kick: more breadth — tonal element, bare-vs-compound range | manual · 2026-07-24 |
+|   | `noise-models` | Noise: multiple algorithms interpolable through a macro | manual · 2026-07-24 |
+|   | `voice8-bretschneider` | Possible 8th voice: quavering chord-ish background (Bretschneider) | manual · 2026-07-24 |
 
 ## Voice model (X/Y/Z macros, pitch)
 
 | | id | item | verify |
 |---|---|---|---|
 | ~ | `multi-voice` | Seven independent voices play at once; select current voice on the global row | manual · 2026-07-23 |
+|   | `combinatoric-macros` | Combinatoric macro space: parameters from X×Y×Z combinations | manual · 2026-07-24 |
 |   | `key-scale-select` | Global row control to set key (root) + scale | manual · 2026-07-23 |
 |   | `keyboard-chromatic` | Pitch keyboard offers chromatic vs scale-quantized mode | manual · 2026-07-23 |
 |   | `xyz-macro-lattice` | X/Y/Z macros select coordinates from a per-voice interacting lattice | manual · 2026-07-23 |
@@ -34,9 +40,11 @@ check`): a `done` item must have a real test or its named artifact.*
 | | id | item | verify |
 |---|---|---|---|
 | ~ | `adsr-mix-microgrid` | Per-voice micro-fader quadrant (vol/pan/prob/…), per-step-plockable | manual · 2026-07-23 |
+| ~ | `step-tap-hold-debounce` | Bug: holding a step with no plock edit deletes it on release | manual · 2026-07-24 |
 |   | `micro-faders-perf` | Remaining micro-fader columns: clock-div, length, send, transpose | manual · 2026-07-23 |
 |   | `pattern-set-seq` | Pattern-set sequencing chains patterns across voices | manual · 2026-07-23 |
 |   | `patterns-per-voice` | Multiple patterns stored per voice | manual · 2026-07-23 |
+|   | `step-copy-paste` | Copy/paste steps via the global bar while holding a step | manual · 2026-07-24 |
 | ✓ | `param-lock` | Hold a step + strips to param-lock X/Y/Z for that step | manual *(attested)* · 2026-07-23 |
 | ✓ | `step-sequencer` | 4x8 grid step sequencer: tap to instantiate a step | manual *(attested)* · 2026-07-23 |
 
@@ -45,6 +53,7 @@ check`): a `done` item must have a real test or its named artifact.*
 | | id | item | verify |
 |---|---|---|---|
 | ~ | `grid-voice-page` | Voice page layout: steps + micro faders + X/Y/Z strips + global row | screenshot: grid photo: step block + micro-fader quadrant + three strips + transport row · 2026-07-23 |
+|   | `y-snap-grid` | Y strip coarse stops snap to musical 1/16-note increments | manual · 2026-07-24 |
 
 ## norns UI
 
@@ -71,6 +80,7 @@ check`): a `done` item must have a real test or its named artifact.*
 | | id | item | verify |
 |---|---|---|---|
 |   | `lfo-automation` | Assignable LFOs modulate voice params (X/Y/Z, vol, pan) | manual · 2026-07-23 |
+|   | `modulation` | Modulation system — where LFO/env/random routes to macros/params | manual · 2026-07-24 |
 |   | `params-persistence` | norns params defined + pset save/load restores full instrument state | manual · 2026-07-23 |
 | ✓ | `clock-transport` | Clock/transport drives sequencer at 32nd-note resolution | manual *(attested)* · 2026-07-23 |
 | ✓ | `ledger-regime` | Ledger + gate regime stood up; scripts/dev check exits 0 | manual *(attested)* · 2026-07-23 |
