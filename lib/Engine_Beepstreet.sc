@@ -28,14 +28,17 @@ Engine_Beepstreet : CroneEngine {
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// bass — dual detuned saw through a resonant LPF + soft drive.
-		//   p1 = cutoff (Hz), p2 = drive (0..1), p3 = detune (cents)
-		SynthDef(\bass, { arg out, freq=110, amp=0.3, atk=0.003, rel=0.5, curve= -4, pan=0, p1=800, p2=0, p3=0;
-			var sig, env;
-			sig = Saw.ar(freq) + Saw.ar(freq * (2 ** (p3 / 1200)));
-			sig = RLPF.ar(sig * 0.5, p1.clip(30, 18000), 0.6);
-			sig = (sig * (1 + (p2 * 4))).tanh;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+		// bass — clean sine fundamental + sub octave + optional saw harmonics, GATED.
+		//   p1 = cutoff/brightness (Hz), p2 = sub level (0..1), p3 = detune (cents)
+		//   env is a gate/window (Env.linen): rel = flat sustain length, shaped by Y.
+		SynthDef(\bass, { arg out, freq=110, amp=0.34, atk=0.01, rel=0.5, curve= -4, pan=0, p1=800, p2=0.5, p3=0;
+			var fund, sub, harm, sig, env;
+			fund = SinOsc.ar(freq);
+			sub  = SinOsc.ar(freq * 0.5) * p2.clip(0, 1);
+			harm = RLPF.ar(Saw.ar(freq) + Saw.ar(freq * (2 ** (p3 / 1200))), p1.clip(50, 16000), 0.5) * 0.3;
+			sig  = (fund * 0.5) + (sub * 0.8) + harm;
+			sig  = (sig * 0.7).tanh;
+			env  = EnvGen.kr(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
@@ -86,9 +89,10 @@ Engine_Beepstreet : CroneEngine {
 
 		// additive — 8 partials, inharmonic stretch + rolloff + count.
 		//   p1 = dissonance (inharmonicity), p2 = partial count (1..8), p3 = rolloff
-		SynthDef(\additive, { arg out, freq=220, amp=0.26, atk=0.01, rel=0.6, curve= -4, pan=0, p1=0, p2=8, p3=1;
+		//   env is a gate/window (Env.linen): rel = flat sustain length (drone), shaped by Y.
+		SynthDef(\additive, { arg out, freq=220, amp=0.24, atk=0.01, rel=0.6, curve= -4, pan=0, p1=0, p2=8, p3=1;
 			var sig, env, n = 8, partials;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+			env = EnvGen.kr(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
 			partials = Array.fill(n, { arg i;
 				var k = i + 1;
 				var ratio = k * (1 + (p1 * (k - 1) * 0.06));
