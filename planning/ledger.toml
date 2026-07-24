@@ -344,21 +344,21 @@ note = "We address a 1-bar 32nd grid, so Y (gate/window length) coarse stops sho
 id = "noise-models"
 title = "Noise: multiple algorithms interpolable through a macro"
 status = "todo"
-modified = "2026-07-24T10:04:32-05:00"
+modified = "2026-07-24T10:13:03-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "a macro morphs the noise voice through several distinct noise models" }
-note = "Crib from er-301-habitat Rauschen (mods/spreadsheet/Rauschen.cpp/.h/.lua) — macro-parametric noise unit. Wanted models: crackle, white, henon, cellular, particle, velvet. Interpolate THROUGH the models on a macro (not just select). Research agent extracting algorithms -> SC. Extends voice-noise."
+note = "Crib from er-301-habitat Rauschen (mods/spreadsheet/Rauschen.cpp/.h/.lua) — macro-parametric noise unit. Wanted models: crackle, white, henon, cellular, particle, velvet. Interpolate THROUGH the models on a macro (not just select). Extends voice-noise. Concrete recipe (per-model SC ports: Decimator/Crackle/HenonN/Dust+Ringz/velvet grains/CA-UGen + tent-weight morph): docs/voice-recipes.md."
 
 [[item]]
 id = "additive-motion-stereo"
 title = "Additive: drifting detune/phase, stereo width, darker/brighter, consonance"
 status = "todo"
-modified = "2026-07-24T10:04:32-05:00"
+modified = "2026-07-24T10:13:03-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "additive gains slow inter-partial drift, a stereo-width macro, and darker/brighter + more/less-consonant control" }
-note = "Drifting detune and/or phase offset between partials (quaver/life); stereo width on a macro; chords must go darker/brighter and more/less consonant. Reference MI Plaits chord_engine (er-301-habitat/eurorack/plaits/dsp/engine/chord_engine.cc, dsp/chords/chord_bank.h) for chord structure/morph. Research agent extracting -> SC. Extends voice-additive."
+note = "Drifting detune and/or phase offset between partials (quaver/life); stereo width on a macro; chords must go darker/brighter and more/less consonant. Reference MI Plaits chord_engine (er-301-habitat/eurorack/plaits/dsp/engine/chord_engine.cc, dsp/chords/chord_bank.h) for chord structure/morph. Extends voice-additive. Concrete recipe (X=structure/interp ratios, Y=rolloff brightness/consonance, Z=inversion+FM depth, micro-detune+drift): docs/voice-recipes.md."
 
 [[item]]
 id = "combinatoric-macros"
@@ -374,11 +374,11 @@ note = "Idea: map extra parameters to COMBINATIONS of X/Y/Z (combinatoric positi
 id = "voice8-bretschneider"
 title = "Possible 8th voice: quavering chord-ish background (Bretschneider)"
 status = "todo"
-modified = "2026-07-24T10:04:32-05:00"
+modified = "2026-07-24T10:13:03-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "a quavering sustained chord-ish texture voice exists (or folded into additive)" }
-note = "Target: the background quavering chord-ish sound in Bretschneider 'The Day It Rained Forever' (Looping I-VI). Own 8th voice OR folded into additive. Research agent analyzing the track for the quaver mechanism + timbre. Note: 8th voice needs voice-select/state to scale (currently NV=7)."
+note = "Target: the background quavering chord-ish sound in Bretschneider 'The Day It Rained Forever' (Looping I-VI). Own 8th voice OR folded into additive. Note: 8th voice needs voice-select/state to scale (currently NV=7). Concrete recipe (quaver = detuned-osc BEATING ~25-30c; G2+G4 pairs; ring-mod ~40Hz sidebands; soft saw; slow swell; mono): docs/voice-recipes.md."
 
 [[item]]
 id = "step-copy-paste"
@@ -404,11 +404,11 @@ note = "Fixed 2026-07-24 (commit 87d3e95): toggle only fires on a genuine quick 
 id = "kick-breadth"
 title = "Kick: more breadth — tonal element, bare-vs-compound range"
 status = "todo"
-modified = "2026-07-24T10:04:32-05:00"
+modified = "2026-07-24T10:13:03-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "kick sweeps from bare tonal bass stab to compound high-partial hit; multiple usable settings" }
-note = "Current kick has ~one good setting (low punch, short decay). Ikeda kicks have a TONAL element and are either bare simple bass stabs (little EG) or compound high-partial-count additive hits (analyze data.reflex — research agent on it). Adopt the Tessera modal voice (er-301-habitat/mods/spreadsheet/Tessera.*) for the pitched modal body. Extends voice-kick."
+note = "Current kick has ~one good setting (low punch, short decay). Ikeda kicks have a TONAL element and are either bare simple bass stabs (little EG) or compound high-partial-count additive hits (analyze data.reflex — research agent on it). Adopt the Tessera modal voice (er-301-habitat/mods/spreadsheet/Tessera.*) for the pitched modal body. Extends voice-kick. Concrete recipe (Ikeda bare 40Hz stab + Type-B compound; Tessera modal lattice + 2 decay tiers): docs/voice-recipes.md."
 
 [[item]]
 id = "modulation"
