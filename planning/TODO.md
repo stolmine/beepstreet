@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**40 items** — 7 done, 15 wip, 18 todo. *Rendered 2026-07-24.*
+**42 items** — 8 done, 16 wip, 18 todo. *Rendered 2026-07-24.*
 
 ## Engine (SuperCollider DSP)
 
@@ -15,12 +15,13 @@ check`): a `done` item must have a real test or its named artifact.*
 | ~ | `kick-breadth` | Kick: more breadth — tonal element, bare-vs-compound range | manual · 2026-07-24 |
 | ~ | `noise-models` | Noise: multiple algorithms interpolable through a macro | manual · 2026-07-24 |
 | ~ | `voice-additive` | Additive-chord voice with X/Y/Z macros | manual · 2026-07-24 |
-| ~ | `voice-bass` | Bass voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-bass` | Bass voice with X/Y/Z macros | manual · 2026-07-24 |
 | ~ | `voice-beep` | Beep voice: sine ping with X/Y/Z macros | manual · 2026-07-23 |
 | ~ | `voice-click1` | Click 1 voice: SC synthdef with X/Y/Z macro inputs | manual · 2026-07-23 |
 | ~ | `voice-click2` | Click 2 voice: second click character, same X/Y/Z axes | manual · 2026-07-23 |
 | ~ | `voice-kick` | Kick-ish voice with X/Y/Z macros | manual · 2026-07-24 |
 | ~ | `voice-noise` | Noise voice with X/Y/Z macros | manual · 2026-07-24 |
+| ~ | `voice-steal-caps` | Per-voice polyphony caps with voice stealing bound worst-case engine load | manual · 2026-07-24 |
 |   | `hard-gate-env` | True hard-gate (rectangular) envelope for sharp on/off sections | manual · 2026-07-24 |
 |   | `voice8-bretschneider` | Possible 8th voice: quavering chord-ish background (Bretschneider) | manual · 2026-07-24 |
 
@@ -83,7 +84,8 @@ check`): a `done` item must have a real test or its named artifact.*
 |   | `modulation` | Modulation system — where LFO/env/random routes to macros/params | manual · 2026-07-24 |
 |   | `params-persistence` | norns params defined + pset save/load restores full instrument state | manual · 2026-07-23 |
 | ✓ | `clock-transport` | Clock/transport drives sequencer at 32nd-note resolution | manual *(attested)* · 2026-07-23 |
+| ✓ | `device-cpu-proxy` | Device real-time CPU proxy: dense-passage NRT render timed on the Pi | manual *(attested)* · 2026-07-24 |
 | ✓ | `ledger-regime` | Ledger + gate regime stood up; scripts/dev check exits 0 | manual *(attested)* · 2026-07-23 |
 | ✓ | `script-scaffold` | Thin beepstreet.lua boots on device and requires lib/ modules | manual *(attested)* · 2026-07-23 |
-| ✓ | `voice-harness` | Autonomous voice-tuning harness: NRT render -> essentia -> compare to targets | manual *(attested)* · 2026-07-23 |
+| ✓ | `voice-harness` | Autonomous voice-tuning harness: NRT render -> essentia -> compare to targets | manual *(attested)* · 2026-07-24 |
 

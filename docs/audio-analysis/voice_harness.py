@@ -69,21 +69,28 @@ def get_params(points):
 
 def extract_synthdefs():
     txt = open(ENGINE).read()
-    defs = re.findall(r"SynthDef\(.*?\}\)\.add;", txt, re.DOTALL)
-    if len(defs) != len(ORDER):
-        sys.exit(f"expected {len(ORDER)} SynthDefs, found {len(defs)}")
-    return defs
+    defs = [d.strip() for d in re.findall(r"^\t*SynthDef\(\\\w.*?\}\)\.add;", txt, re.DOTALL | re.MULTILINE)]
+    names = [re.match(r"SynthDef\(\\(\w+)", d).group(1) for d in defs]
+    return defs, names
+
+
+def def_for(voice, params, names):
+    """def name for a hit — voice types with spawn-picked variant defs (mirrors
+    Engine_Beepstreet.trigVoice; shared with tools/device_cpu.py)."""
+    sys.path.insert(0, os.path.join(ROOT, "tools"))
+    from device_cpu import dispatch
+    return dispatch(voice, params, names)
 
 
 def key(p):
     return f'{p["voice"]}__{p["point"]}'
 
 
-def build_render_scd(params, defs, oscdir):
+def build_render_scd(params, defs, names, oscdir):
     lines = ["("]
     lines += defs
     for p in params:
-        name = p["voice"]
+        name = def_for(p["voice"], p, names)
         end = round(HITS[-1] + p["rel"] + 0.4, 3)
         events = [f'[0.0, [\\d_recv, SynthDescLib.global[\\{name}].def.asBytes]]']
         for i, t in enumerate(HITS):
@@ -143,7 +150,8 @@ def main():
     os.makedirs(f"{WORK}/osc", exist_ok=True)
     os.makedirs(f"{WORK}/wav", exist_ok=True)
     params = get_params(expand_points(POINTS))
-    scd = build_render_scd(params, extract_synthdefs(), f"{WORK}/osc")
+    defs, names = extract_synthdefs()
+    scd = build_render_scd(params, defs, names, f"{WORK}/osc")
     open(f"{WORK}/render.scd", "w").write(scd)
     r = sh([SCLANG, f"{WORK}/render.scd"])
     if "__RENDERED__" not in r.stdout:

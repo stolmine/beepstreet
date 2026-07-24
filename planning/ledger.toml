@@ -59,12 +59,33 @@ note = "4x8 step grid = 32nd resolution, every other step a 16th. Steal timing m
 id = "voice-harness"
 title = "Autonomous voice-tuning harness: NRT render -> essentia -> compare to targets"
 status = "done"
-modified = "2026-07-23T23:36:39-05:00"
+modified = "2026-07-24T11:54:20-05:00"
 created = "2026-07-23T21:38:59-05:00"
 area = "infra"
 verify = { kind = "manual", ref = "run docs/audio-analysis/voice_harness.py -> renders 7 voices offline, prints feature table vs sonic-targets" }
 attested = "2026-07-23: built + ran on Mac. luajit runs the real lib/voices.lua resolver -> params; SC NRT (scsynth offline, no device/norns conflict) renders each SynthDef; essentia MusicExtractor measures; prints centroid/rolloff/flatness/zcr/dissonance/band-split vs per-voice targets. Reflects current code each run. Immediately flagged: bass now sub-heavy (band_low 98%), additive dissonance under target, click2 not distinct from click1."
-note = "docs/audio-analysis/{voice_harness.py, render_params.lua}. Mac-only tool (uses /Applications/SuperCollider.app + essentia venv). NRT via `scsynth -N` directly (Score.recordNRT emits a bad -a option). Caveat: percussive clicks measured over silence inflate centroid (transient-dominated) — read flatness/zcr for those. Now takes a points arg: semicolon 'x,y,z' list or 'sweep:x|y|z|all' (5-point axis sweeps), renders one wav per (voice,point), and prints rms+peak dBFS columns (catches loudness cliffs across a macro). Caveat 2: long-rel drone voices overlap across the 7 hits (0.4s apart) — their rms/peak measures the stack."
+note = "docs/audio-analysis/{voice_harness.py, render_params.lua}. Mac-only tool (uses /Applications/SuperCollider.app + essentia venv). NRT via `scsynth -N` directly (Score.recordNRT emits a bad -a option). Caveat: percussive clicks measured over silence inflate centroid (transient-dominated) — read flatness/zcr for those. Now takes a points arg: semicolon 'x,y,z' list or 'sweep:x|y|z|all' (5-point axis sweeps), renders one wav per (voice,point), and prints rms+peak dBFS columns (catches loudness cliffs across a macro). Caveat 2: long-rel drone voices overlap across the 7 hits (0.4s apart) — their rms/peak measures the stack. Caveat 3 (2026-07-24): NRT renders faster than real time, so this harness is STRUCTURALLY BLIND to CPU cost — pair every engine DSP change with tools/device_cpu.py. Now resolves spawn-picked variant defs (noise segments) via the shared dispatch in tools/device_cpu.py."
+
+[[item]]
+id = "device-cpu-proxy"
+title = "Device real-time CPU proxy: dense-passage NRT render timed on the Pi"
+status = "done"
+modified = "2026-07-24T11:54:20-05:00"
+created = "2026-07-24T11:54:20-05:00"
+area = "infra"
+verify = { kind = "manual", ref = "python3 tools/device_cpu.py — renders dense per-voice + all-7 passages via the device's own scsynth (NRT, /tmp only), prints wall/audio RT-ratio table" }
+attested = "2026-07-24: built + used for the engine CPU audit. Root-caused the device engine-load hang: RT CPU saturation (parked additive alone = 0.96 of a core dense; all-7 dense 1.66), invisible to the Mac harness (NRT renders faster than real time). Scores are compiled on the Mac (SynthDef bytecode + OSC scores are platform-portable) and only `scsynth -N` runs on the device — device sclang is never used (its startup touches the live server port). Post-optimization: all-7 dense with caps = 0.21."
+note = "RT-ratio = (wall - empty-score baseline)/audio_s ~= fraction of one Pi core; community xrun threshold ~0.6 — keep the all-7 aggregate under ~0.5. Worst-case macro points per voice baked in (WORST); real params via render_params.lua + lib/voices.lua. --cap simulates voice stealing; --engine/--root measure any engine version (e.g. a git-show'd parked one). Run this for ANY engine DSP change — the Mac harness is structurally blind to CPU."
+
+[[item]]
+id = "voice-steal-caps"
+title = "Per-voice polyphony caps with voice stealing bound worst-case engine load"
+status = "wip"
+modified = "2026-07-24T11:54:20-05:00"
+created = "2026-07-24T11:54:20-05:00"
+area = "engine"
+verify = { kind = "manual", ref = "hold long-Y drones retriggering on the 32nd grid on all 7 voices; no xruns, next script load survives; steals fade (10ms), no clicks" }
+note = "Engine-side in trigVoice: per-type List of live synths; spawn beyond cap = oldest gets set(\\gate,0) -> 10ms cutoff EnvGen -> free. Caps (beep 8, bass 6, click1 8, click2 8, noise 6, kick 4, additive 4) sized from measured per-instance cost: capped all-7 dense = 0.21 of a core (uncapped 0.97 = the load-hang regime). Trigger-side caps unnecessary but stricter caps are safe. Needs on-device attest: steal-fade audibility on stolen drone tails."
 
 [[item]]
 id = "lfo-automation"
@@ -140,11 +161,11 @@ note = "Superseded by kick-breadth (Ikeda bare stab -> Tessera modal clang latti
 id = "voice-bass"
 title = "Bass voice with X/Y/Z macros"
 status = "wip"
-modified = "2026-07-23T23:36:39-05:00"
+modified = "2026-07-24T11:54:20-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger bass; sustained low tone; macros respond" }
-note = "Reference recipe: two detuned sines + touch cross-FM, steep-log VCA (smooth yet defined); long gate + hard release = drone-that-cuts. Worked X/Y/Z decomposition in docs/macro-model.md. Harness full-sweep verified: X band_low 99% -> 44% (clean sub -> FM edge), Z sub-octave 80->93% low, Y 30ms gate -> 3s drone; peaks flat. No dead zones; left as built."
+note = "Reference recipe: two detuned sines + touch cross-FM, steep-log VCA (smooth yet defined); long gate + hard release = drone-that-cuts. Worked X/Y/Z decomposition in docs/macro-model.md. Harness full-sweep verified: X band_low 99% -> 44% (clean sub -> FM edge), Z sub-octave 80->93% low, Y 30ms gate -> 3s drone; peaks flat. No dead zones. CPU (2026-07-24): .tanh safety -> .softclip (tanh is a per-sample transcendental — it was over half this voice's cost on ARM) + scalar-rate params: dense-50 cost 0.34 -> 0.14 of a core (~0.6%/instance). Harness re-verified: X/Z arcs unchanged (44/56 at x1, sub 79->93)."
 
 # ── voice model ─────────────────────────────────────────────────────────────
 [[item]]
@@ -344,21 +365,21 @@ note = "We address a 1-bar 32nd grid, so Y (gate/window length) coarse stops sho
 id = "noise-models"
 title = "Noise: multiple algorithms interpolable through a macro"
 status = "wip"
-modified = "2026-07-24T10:39:01-05:00"
+modified = "2026-07-24T11:54:20-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "a macro morphs the noise voice through several distinct noise models" }
-note = "Built per docs/voice-recipes.md, STOCK UGens only (no sc3-plugins on device): X = tent-weight morph white -> crush (Latch, hold rate = freq*8) -> crackle (Crackle 1.9) -> velvet (Dust2, density = freq*6) -> particle (Dust->Ringz, per-hit TExpRand freq). Texture rates pitch-track the grid note. Z = LP/BP/HP morph, Y = duration. Harness: station rms balanced -45/-40/-44/-45/-37, peaks -15..-22, no dead points at filter extremes. Henon/cellular skipped (need custom UGens; approximations added nothing distinct). Station distinction is temporal — needs ears."
+note = "Built per docs/voice-recipes.md, STOCK UGens only (no sc3-plugins on device): X = tent-weight morph white -> crush (Latch, hold rate = freq*8) -> crackle (Crackle 1.9) -> velvet (Dust2, density = freq*6) -> particle (Dust->Ringz, per-hit TExpRand freq). Texture rates pitch-track the grid note. Z = LP/BP/HP morph, Y = duration. Harness: station rms balanced -45/-40/-44/-45/-37, peaks -15..-22, no dead points at filter extremes. Henon/cellular skipped (need custom UGens; approximations added nothing distinct). Station distinction is temporal — needs ears. CPU (2026-07-24): reintroduced as 4 two-station SEGMENT defs (noise_wc/cc/cv/vp) picked at spawn — the tent only ever hears 2 adjacent stations, so the always-on 5-source sum was pure waste; params scalar-rate. Dense-50 device cost 0.16 -> 0.11 of a core (~0.9%/instance); identical morph math."
 
 [[item]]
 id = "additive-motion-stereo"
 title = "Additive: drifting detune/phase, stereo width, darker/brighter, consonance"
 status = "wip"
-modified = "2026-07-24T10:31:58-05:00"
+modified = "2026-07-24T11:54:20-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "additive gains slow inter-partial drift, a stereo-width macro, and darker/brighter + more/less-consonant control" }
-note = "Built per docs/voice-recipes.md (Plaits chord_engine ref): 7 tension-ordered chords (OCT,P5,sus4,m,m7,m9,m11), X = continuous ratio-interpolated chord glide. Z bundles brightness rolloff (early) + continuous inversion rotation + FM sidebands + stereo width (late): z sweep flat .86->.33, diss .21->.44 (hits .40-.49 target), mid-high 0->44%. Fixed L/R micro-detune +-0.25% + slow LFNoise1 drift = built-in quaver. NOTE: recipe suggested Y=brightness — kept Y=duration; brightness lives in Z. Width rides Z (no spare scalar for a dedicated macro). Needs ears: chord-glide midpoints + drift depth."
+note = "Built per docs/voice-recipes.md (Plaits chord_engine ref): 7 tension-ordered chords (OCT,P5,sus4,m,m7,m9,m11), X = continuous ratio-interpolated chord glide. Z bundles brightness rolloff (early) + continuous inversion rotation + FM sidebands + stereo width (late). Fixed L/R micro-detune +-0.25% + slow LFNoise1 drift = built-in quaver. NOTE: recipe suggested Y=brightness — kept Y=duration; brightness lives in Z. CPU (2026-07-24): the original 8-PMOsc build was THE saturation source (0.96 of a core alone, dense — the engine-load hang). Rebuilt: lower two notes MONO, upper two L/R detuned pairs (6 PMOsc; interchannel beat = the audible quaver), chord/lift/level math scalar-rate (tent-basis interp, runs once at spawn), one drift LFNoise1/note shared L/R. Dense-50 cost 0.96 -> 0.48 (~1.9%/instance; capped at 4 voices). Harness re-verified: z sweep flat .85->.35, diss .21->.44 (target held), mid-high 0->36% (was 44 — slightly less upper-side energy from the mono low pair). Needs ears: chord-glide midpoints, drift depth, low-note width loss."
 
 [[item]]
 id = "combinatoric-macros"
@@ -404,11 +425,11 @@ note = "Fixed 2026-07-24 (commit 87d3e95): toggle only fires on a genuine quick 
 id = "kick-breadth"
 title = "Kick: more breadth — tonal element, bare-vs-compound range"
 status = "wip"
-modified = "2026-07-24T10:31:58-05:00"
+modified = "2026-07-24T11:54:20-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "kick sweeps from bare tonal bass stab to compound high-partial hit; multiple usable settings" }
-note = "Built per docs/voice-recipes.md (Ikeda bare stab + Tessera modal lattice): sub stab + Klank inharmonic lattice (8 modes around freq*10, two decay tiers, fold2) soft-clipped together; sub ducks as clang takes over. X = bare 40Hz-style stab -> compound clang (bands 98%low -> 27/46/26, diss .31->.44, peaks flat -13/-14); Z = pitch-env depth+time together (tight thump -> laser fall); Y = body 40-900ms (Ikeda 350ms stab at y~0.7). NOTE: recipe suggested Y=fold — kept Y=duration per macro-model law, folded clang/fold into the X bundle. Needs ears at x extremes."
+note = "Built per docs/voice-recipes.md (Ikeda bare stab + Tessera modal lattice): sub stab + Klank inharmonic lattice (modes around freq*10, two decay tiers, fold2) soft-clipped together; sub ducks as clang takes over. X = bare 40Hz-style stab -> compound clang; Z = pitch-env depth+time together (tight thump -> laser fall); Y = body 40-900ms (Ikeda 350ms stab at y~0.7). NOTE: recipe suggested Y=fold — kept Y=duration per macro-model law, folded clang/fold into the X bundle. CPU (2026-07-24): lattice trimmed 8 -> 5 modes (kept ringing core -1/0/+1 + one snap tier each side -3/+4; Klank cost is linear in modes), params scalar-rate. Dense-50 cost 0.13 -> 0.10 (~0.9%/instance). Harness re-verified: x sweep 97%low -> 22/53/25, diss .31->.44 — the attested 8-mode arc held. Needs ears at x extremes."
 
 [[item]]
 id = "modulation"
