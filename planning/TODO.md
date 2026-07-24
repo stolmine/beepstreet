@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**25 items** — 3 done, 1 wip, 21 todo. *Rendered 2026-07-23.*
+**25 items** — 4 done, 1 wip, 20 todo. *Rendered 2026-07-23.*
 
 ## Engine (SuperCollider DSP)
 
@@ -30,11 +30,11 @@ check`): a `done` item must have a real test or its named artifact.*
 
 | | id | item | verify |
 |---|---|---|---|
-| ~ | `step-sequencer` | 4x8 grid step sequencer: tap to instantiate a step | manual · 2026-07-23 |
+| ~ | `param-lock` | Hold a step + strips to param-lock X/Y/Z for that step | manual · 2026-07-23 |
 |   | `adsr-mix-microgrid` | Micro-grid edits attack/decay/volume/pan (3 settings each) | manual · 2026-07-23 |
-|   | `param-lock` | Hold a step + strips to param-lock X/Y/Z for that step | manual · 2026-07-23 |
 |   | `pattern-set-seq` | Pattern-set sequencing chains patterns across voices | manual · 2026-07-23 |
 |   | `patterns-per-voice` | Multiple patterns stored per voice | manual · 2026-07-23 |
+| ✓ | `step-sequencer` | 4x8 grid step sequencer: tap to instantiate a step | manual *(attested)* · 2026-07-23 |
 
 ## Grid controller
 

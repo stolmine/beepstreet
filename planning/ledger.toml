@@ -154,22 +154,23 @@ verify = { kind = "manual", ref = "grid selection sets a discrete pitch per voic
 [[item]]
 id = "step-sequencer"
 title = "4x8 grid step sequencer: tap to instantiate a step"
-status = "wip"
-modified = "2026-07-23T19:16:30-05:00"
+status = "done"
+modified = "2026-07-23T19:32:13-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "seq"
 verify = { kind = "manual", ref = "tapping a pad toggles a step that then triggers the voice in time" }
-note = "lib/gridui.lua: 4x8 block (rows=beats, cols=8 thirty-seconds/beat), tap toggles step, playhead sweeps on step-advance, 16th cols brighter. Shared pattern table read by seq, edited by gridui. Seeded 4 downbeats on load (persistence is a later item)."
+attested = "2026-07-23: verified on device — tap-on/tap-off authoring on the 4x8 block, playhead sweeps in time, steps trigger the beep voice. Fixed a Lua and/or-trap toggle bug found on-device."
+note = "lib/gridui.lua: 4x8 block (rows=beats, cols=8 thirty-seconds/beat), tap toggles step, playhead sweeps on step-advance, 16th cols brighter. Shared pattern table read by seq, edited by gridui. Starts empty."
 
 [[item]]
 id = "param-lock"
 title = "Hold a step + strips to param-lock X/Y/Z for that step"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T19:32:13-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "seq"
 verify = { kind = "manual", ref = "held step captures strip values; unheld strip edits are global" }
-note = "Steal the hold-to-plock interaction pattern from gladiola."
+note = "Steal the hold-to-plock interaction pattern from gladiola. lib/strip.lua: coarse-tap-along + fine re-tap-top (n*15 res via 4-bit brightness; key 1 reaches 0). Three strips rows 6-8 = X/Y/Z. Hold a step + edit strip = plock (turns step on); no hold = global macro; step tap w/o strip = toggle. Also advances grid-voice-page (the strip layout)."
 
 [[item]]
 id = "adsr-mix-microgrid"
