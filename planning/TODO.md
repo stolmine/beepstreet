@@ -5,22 +5,22 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**40 items** — 7 done, 12 wip, 21 todo. *Rendered 2026-07-24.*
+**40 items** — 7 done, 14 wip, 19 todo. *Rendered 2026-07-24.*
 
 ## Engine (SuperCollider DSP)
 
 | | id | item | verify |
 |---|---|---|---|
-| ~ | `voice-additive` | Additive-chord voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `additive-motion-stereo` | Additive: drifting detune/phase, stereo width, darker/brighter, consonance | manual · 2026-07-24 |
+| ~ | `kick-breadth` | Kick: more breadth — tonal element, bare-vs-compound range | manual · 2026-07-24 |
+| ~ | `voice-additive` | Additive-chord voice with X/Y/Z macros | manual · 2026-07-24 |
 | ~ | `voice-bass` | Bass voice with X/Y/Z macros | manual · 2026-07-23 |
 | ~ | `voice-beep` | Beep voice: sine ping with X/Y/Z macros | manual · 2026-07-23 |
 | ~ | `voice-click1` | Click 1 voice: SC synthdef with X/Y/Z macro inputs | manual · 2026-07-23 |
 | ~ | `voice-click2` | Click 2 voice: second click character, same X/Y/Z axes | manual · 2026-07-23 |
-| ~ | `voice-kick` | Kick-ish voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-kick` | Kick-ish voice with X/Y/Z macros | manual · 2026-07-24 |
 | ~ | `voice-noise` | Noise voice with X/Y/Z macros | manual · 2026-07-23 |
-|   | `additive-motion-stereo` | Additive: drifting detune/phase, stereo width, darker/brighter, consonance | manual · 2026-07-24 |
 |   | `hard-gate-env` | True hard-gate (rectangular) envelope for sharp on/off sections | manual · 2026-07-24 |
-|   | `kick-breadth` | Kick: more breadth — tonal element, bare-vs-compound range | manual · 2026-07-24 |
 |   | `noise-models` | Noise: multiple algorithms interpolable through a macro | manual · 2026-07-24 |
 |   | `voice8-bretschneider` | Possible 8th voice: quavering chord-ish background (Bretschneider) | manual · 2026-07-24 |
 

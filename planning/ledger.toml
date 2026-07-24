@@ -110,11 +110,11 @@ note = "Ikeda dual-sine: X = pure sine -> detune beating (30 cents ^1.5 curve) -
 id = "voice-additive"
 title = "Additive-chord voice with X/Y/Z macros"
 status = "wip"
-modified = "2026-07-23T23:36:39-05:00"
+modified = "2026-07-24T10:31:58-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger additive; chordal partials; macros vary spectrum" }
-note = "X = consonance↔dissonance harmonic-complexity sweep (target dissonance .40-.49, full range reachable). See docs/macro-model.md + docs/sonic-targets.md. Harness full-sweep verified: X diss .23->.49 centroid 1.4k->3.2k, Z tilt 2.3k->3.1k, Y gate->drone; rms flat across X. No dead zones; left as built."
+note = "X = consonance↔dissonance harmonic-complexity sweep (target dissonance .40-.49, full range reachable). See docs/macro-model.md + docs/sonic-targets.md. Superseded by additive-motion-stereo (Plaits-style chord engine, stereo/drift); see that item for the current design + measurements."
 
 [[item]]
 id = "voice-noise"
@@ -130,11 +130,11 @@ note = "X = colour arc: brown -> white -> Latch rate-crush to ~460Hz hold (raste
 id = "voice-kick"
 title = "Kick-ish voice with X/Y/Z macros"
 status = "wip"
-modified = "2026-07-23T23:36:39-05:00"
+modified = "2026-07-24T10:31:58-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger kick; percussive body; macros vary tone/decay" }
-note = "X = punch: sweep depth (1.5x->6x start) + click + tanh drive together; post-tanh LPF tracks pitch (freq*5, 200-500Hz) so drive can't brighten it. Z = pitch-decay 15-90ms, Y = body length 50-800ms. Harness: X bands 99/1 (pure Bretschneider throb) -> 76/24 (punchy), rms flat; y1 = 93% low deep throb. Audition punch top-end."
+note = "Superseded by kick-breadth (Ikeda bare stab -> Tessera modal clang lattice); see that item for the current design + measurements."
 
 [[item]]
 id = "voice-bass"
@@ -353,12 +353,12 @@ note = "Crib from er-301-habitat Rauschen (mods/spreadsheet/Rauschen.cpp/.h/.lua
 [[item]]
 id = "additive-motion-stereo"
 title = "Additive: drifting detune/phase, stereo width, darker/brighter, consonance"
-status = "todo"
-modified = "2026-07-24T10:13:03-05:00"
+status = "wip"
+modified = "2026-07-24T10:31:58-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "additive gains slow inter-partial drift, a stereo-width macro, and darker/brighter + more/less-consonant control" }
-note = "Drifting detune and/or phase offset between partials (quaver/life); stereo width on a macro; chords must go darker/brighter and more/less consonant. Reference MI Plaits chord_engine (er-301-habitat/eurorack/plaits/dsp/engine/chord_engine.cc, dsp/chords/chord_bank.h) for chord structure/morph. Extends voice-additive. Concrete recipe (X=structure/interp ratios, Y=rolloff brightness/consonance, Z=inversion+FM depth, micro-detune+drift): docs/voice-recipes.md."
+note = "Built per docs/voice-recipes.md (Plaits chord_engine ref): 7 tension-ordered chords (OCT,P5,sus4,m,m7,m9,m11), X = continuous ratio-interpolated chord glide. Z bundles brightness rolloff (early) + continuous inversion rotation + FM sidebands + stereo width (late): z sweep flat .86->.33, diss .21->.44 (hits .40-.49 target), mid-high 0->44%. Fixed L/R micro-detune +-0.25% + slow LFNoise1 drift = built-in quaver. NOTE: recipe suggested Y=brightness — kept Y=duration; brightness lives in Z. Width rides Z (no spare scalar for a dedicated macro). Needs ears: chord-glide midpoints + drift depth."
 
 [[item]]
 id = "combinatoric-macros"
@@ -403,12 +403,12 @@ note = "Fixed 2026-07-24 (commit 87d3e95): toggle only fires on a genuine quick 
 [[item]]
 id = "kick-breadth"
 title = "Kick: more breadth — tonal element, bare-vs-compound range"
-status = "todo"
-modified = "2026-07-24T10:13:03-05:00"
+status = "wip"
+modified = "2026-07-24T10:31:58-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "kick sweeps from bare tonal bass stab to compound high-partial hit; multiple usable settings" }
-note = "Current kick has ~one good setting (low punch, short decay). Ikeda kicks have a TONAL element and are either bare simple bass stabs (little EG) or compound high-partial-count additive hits (analyze data.reflex — research agent on it). Adopt the Tessera modal voice (er-301-habitat/mods/spreadsheet/Tessera.*) for the pitched modal body. Extends voice-kick. Concrete recipe (Ikeda bare 40Hz stab + Type-B compound; Tessera modal lattice + 2 decay tiers): docs/voice-recipes.md."
+note = "Built per docs/voice-recipes.md (Ikeda bare stab + Tessera modal lattice): sub stab + Klank inharmonic lattice (8 modes around freq*10, two decay tiers, fold2) soft-clipped together; sub ducks as clang takes over. X = bare 40Hz-style stab -> compound clang (bands 98%low -> 27/46/26, diss .31->.44, peaks flat -13/-14); Z = pitch-env depth+time together (tight thump -> laser fall); Y = body 40-900ms (Ikeda 350ms stab at y~0.7). NOTE: recipe suggested Y=fold — kept Y=duration per macro-model law, folded clang/fold into the X bundle. Needs ears at x extremes."
 
 [[item]]
 id = "modulation"
