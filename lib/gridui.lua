@@ -144,8 +144,8 @@ function GridUI.redraw()
     for xx = 1, STEP_COLS do
       local s = step_of(xx, yy)
       local lvl
-      if pattern[s] then lvl = 8 elseif (xx % 2 == 1) then lvl = 4 else lvl = 3 end
-      if s == held_step then lvl = 12 end
+      if pattern[s] then lvl = 12 elseif (xx % 2 == 1) then lvl = 4 else lvl = 2 end  -- on-steps pop over a dim field
+      if s == held_step then lvl = 15 end
       if s == pos then lvl = 15 end
       g:led(xx, yy, lvl)
     end

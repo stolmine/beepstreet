@@ -31,7 +31,7 @@ function Fader.bi_render(g, col, v)
   for r = 1, ROWS do g:led(col, r, 0) end
   if lvl == 2 then g:led(col, 1, 15); g:led(col, 2, 15)
   elseif lvl == 1 then g:led(col, 2, 15)
-  elseif lvl == 0 then g:led(col, 2, 3); g:led(col, 3, 3)
+  elseif lvl == 0 then g:led(col, 2, 7); g:led(col, 3, 7)   -- center: visible glow when selected
   elseif lvl == -1 then g:led(col, 3, 15)
   elseif lvl == -2 then g:led(col, 3, 15); g:led(col, 4, 15) end
 end
