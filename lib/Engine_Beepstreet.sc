@@ -16,15 +16,16 @@ Engine_Beepstreet : CroneEngine {
 	alloc {
 		voiceGroup = Group.new(context.xg);
 
-		// beep — two detuned sines + a touch of cross-FM (Ikeda-bass DNA).
-		//   p1 = detune (cents), p2 = fmIndex
+		// beep — Ikeda dual-sine ping: two detuned sines + cross-FM + an inharmonic partner tone.
+		//   p1 = detune (cents), p2 = cross-FM index, p3 = inharmonic partner-tone level 0..1
 		SynthDef(\beep, { arg out, freq=440, amp=0.3, atk=0.001, rel=0.2, curve= -4, pan=0, p1=0, p2=0, p3=0;
-			var s1, s2, sig, env, f2;
+			var s1, s2, s3, sig, env, f2;
 			f2 = freq * (2 ** (p1 / 1200));
 			s2 = SinOsc.ar(f2);
 			s1 = SinOsc.ar(freq + (s2 * p2 * freq));
-			sig = (s1 + s2) * 0.5;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+			s3 = SinOsc.ar(freq * 2.757) * p3;                                 // clangy partner tone, irrational ratio
+			sig = ((s1 + s2) * 0.5) + (s3 * 0.4);
+			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
@@ -38,52 +39,68 @@ Engine_Beepstreet : CroneEngine {
 			sub  = SinOsc.ar(freq * 0.5) * p2.clip(0, 1);
 			sig  = (fund * 0.6) + (sub * 0.9);
 			sig  = (sig * 0.85).tanh;                                        // gentle safety only, no drive
-			env  = EnvGen.kr(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
+			env  = EnvGen.ar(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// click1 — bright/ultrasonic: impulse<->noise excitation into a Ringz, HPF'd.
-		//   p1 = noise amount (tonal->noise), p2 = ring/center freq
+		// click1 — bright/ultrasonic Ikeda click: morphs impulse-tick -> resonant ping -> noise burst.
+		//   p1 = morph 0..1 (tick->ping->burst), p2 = center freq (2k..12k from resolver)
 		SynthDef(\click1, { arg out, freq=440, amp=0.3, atk=0, rel=0.01, curve= -4, pan=0, p1=0, p2=6000, p3=0;
-			var exc, sig, env;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			exc = (Impulse.ar(0) * (1 - p1)) + (WhiteNoise.ar * p1 * env);
-			sig = Ringz.ar(exc, p2.clip(200, 18000), rel * 0.6);
-			sig = HPF.ar(sig, 500);
-			Out.ar(out, Pan2.ar(sig * env * amp, pan));
+			var env, c, w, tickw, pingw, burstw, ping, burst, sig;
+			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+			c = p2.clip(1000, 16000);
+			w = p1.clip(0, 1) * 2;                                             // 0 tick .. 1 ping .. 2 burst
+			tickw  = (1 - w).clip(0, 1);
+			pingw  = (1 - (w - 1).abs).clip(0, 1);
+			burstw = (w - 1).clip(0, 1);
+			ping  = Ringz.ar(Impulse.ar(0), c, rel.clip(0.004, 0.08)) * 0.9;   // pitched ping, ring tracks Y (rel)
+			burst = BPF.ar(WhiteNoise.ar, c, 1.2) * 2.0;                       // colored noise burst
+			sig = (ping * pingw) + (burst * burstw) + (Ringz.ar(Impulse.ar(0), c, 0.004) * 0.6 * tickw);
+			sig = HPF.ar(sig * env, 300);
+			sig = sig + (Impulse.ar(0) * 0.55 * tickw);                        // raw one-sample impulse bypasses the env window
+			sig = sig + (Ringz.ar(Impulse.ar(0), (c * 0.125).clip(200, 2000), 0.012) * 0.05 * env); // faint sub-partial so ultrasonic reads on small speakers
+			Out.ar(out, Pan2.ar(sig * amp, pan));
 		}).add;
 
-		// click2 — woody/dry: a resonant band-passed click, lower + more body.
-		//   p1 = ring decay (damping->resonant), p2 = center freq
+		// click2 — woody/dry modal click (SND woodblock).
+		//   p1 = resonance 0..1 (dead thud->woodblock ping), p2 = center freq (400..4000 from resolver)
 		SynthDef(\click2, { arg out, freq=440, amp=0.3, atk=0, rel=0.03, curve= -4, pan=0, p1=0.05, p2=1500, p3=0;
-			var sig, env, c;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			c = p2.clip(200, 8000);
-			sig = Ringz.ar(Impulse.ar(0), c, p1.clip(0.005, 0.3));
-			sig = BPF.ar(sig, c, 0.6);
+			var env, c, ring, exc, sig;
+			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+			c = p2.clip(300, 4500);
+			ring = 0.004 + (p1.clip(0, 1) * 0.076);                            // 4ms dead -> 80ms ringing
+			exc = WhiteNoise.ar * EnvGen.ar(Env.perc(0.0001, 0.0015));         // 1.5ms noise burst = wood-fiber strike
+			sig = Klank.ar(`[ [c, c * 2.756, c * 5.404], [1, 0.42, 0.18], [ring, ring * 0.6, ring * 0.35] ], exc);
+			sig = (sig * (1.2 + p1) * (0.05 / ring).clip(0.5, 14)).tanh;       // deterministic compaction; 1/ring comp flattens peak across X
+			sig = LPF.ar(HPF.ar(sig, 250), 6000);                              // mid-forward: no rumble, no gloss
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// noise — white<->brown source through an LP/BP/HP morph.
-		//   p1 = colour (white->brown), p2 = filter center, p3 = filter morph (0 LP..1 HP)
+		// noise — colour arc brown->white->rate-crushed digital crackle, through an LP/BP/HP morph.
+		//   p1 = colour 0..2 (0 brown, 1 white, 1..2 latch sample-rate crush toward ~750Hz hold rate)
+		//   p2 = filter center, p3 = filter morph (0 LP..0.5 BP..1 HP)
 		SynthDef(\noise, { arg out, freq=440, amp=0.28, atk=0.005, rel=0.2, curve= -4, pan=0, p1=0, p2=4000, p3=0;
-			var src, sig, env, c;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			src = (WhiteNoise.ar * (1 - p1)) + (BrownNoise.ar * p1);
+			var src, holdRate, sig, env, c, w;
+			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+			w = p1.clip(0, 1);
+			src = (BrownNoise.ar * (1 - w)) + (WhiteNoise.ar * w);
+			holdRate = 24000 * (0.5 ** ((p1.clip(1, 2) - 1) * 5.7));           // 24k (transparent) -> ~460Hz (crackle)
+			sig = Latch.ar(src, Impulse.ar(holdRate)) * (1 + ((p1.clip(1, 2) - 1) * 1.2)); // makeup: crush loses band energy
 			c = p2.clip(40, 18000);
-			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(src, c, 0.4), BPF.ar(src, c, 0.5), RHPF.ar(src, c, 0.4) ]);
+			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]);
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// kick — pitch-enveloped sine body + a noise click, soft-driven.
-		//   p1 = click/drive, p2 = pitch-decay (tone)
+		// kick — deep sine kick; drive-harmonics removed post-tanh so it stays deep.
+		//   p1 = punch 0..1 (sweep depth + click + drive together), p2 = pitch-decay seconds
 		SynthDef(\kick, { arg out, freq=60, amp=0.34, atk=0, rel=0.3, curve= -4, pan=0, p1=0.3, p2=0.06, p3=0;
-			var body, clk, sig, env, fenv;
-			env = EnvGen.kr(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			fenv = EnvGen.kr(Env([freq * 6, freq], [p2.clip(0.005, 0.4)], \exp));
+			var env, fenv, body, clk, sig;
+			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+			fenv = EnvGen.ar(Env([freq * (1.5 + (p1 * 4.5)), freq], [p2.clip(0.005, 0.3)], \exp));
 			body = SinOsc.ar(fenv);
-			clk = HPF.ar(WhiteNoise.ar * EnvGen.kr(Env.perc(0, 0.006)), 1200) * p1;
-			sig = ((body + clk) * (1 + (p1 * 3))).tanh;
+			body = LPF.ar((body * (1.2 + (p1 * 1.8))).tanh, (freq * 5).clip(200, 500)); // post-tanh LPF tracks pitch: drive can't brighten it
+			clk = HPF.ar(WhiteNoise.ar * EnvGen.ar(Env.perc(0.0001, 0.004)), 3000) * p1 * 0.5;
+			sig = body + clk;
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
@@ -99,7 +116,7 @@ Engine_Beepstreet : CroneEngine {
 			var sig, env, voices;
 			var ratios = [1, 1.5, 2.0, 3.0];        // chord: root, fifth, octave, twelfth
 			var mods   = [1.41, 1.73, 2.76, 3.16];  // irrational modulator ratios -> inharmonic
-			env = EnvGen.kr(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
+			env = EnvGen.ar(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
 			voices = Array.fill(4, { arg i;
 				var c = freq * ratios[i];
 				var lvl = (1 / (i + 1)) * (1 + (p2 * i * 0.6));   // Z lifts the upper voices

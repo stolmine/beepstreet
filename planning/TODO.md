@@ -5,19 +5,19 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**30 items** — 7 done, 4 wip, 19 todo. *Rendered 2026-07-23.*
+**30 items** — 7 done, 11 wip, 12 todo. *Rendered 2026-07-23.*
 
 ## Engine (SuperCollider DSP)
 
 | | id | item | verify |
 |---|---|---|---|
-|   | `voice-additive` | Additive-chord voice with X/Y/Z macros | manual · 2026-07-23 |
-|   | `voice-bass` | Bass voice with X/Y/Z macros | manual · 2026-07-23 |
-|   | `voice-beep` | Beep voice: sine ping with X/Y/Z macros | manual · 2026-07-23 |
-|   | `voice-click1` | Click 1 voice: SC synthdef with X/Y/Z macro inputs | manual · 2026-07-23 |
-|   | `voice-click2` | Click 2 voice: second click character, same X/Y/Z axes | manual · 2026-07-23 |
-|   | `voice-kick` | Kick-ish voice with X/Y/Z macros | manual · 2026-07-23 |
-|   | `voice-noise` | Noise voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-additive` | Additive-chord voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-bass` | Bass voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-beep` | Beep voice: sine ping with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-click1` | Click 1 voice: SC synthdef with X/Y/Z macro inputs | manual · 2026-07-23 |
+| ~ | `voice-click2` | Click 2 voice: second click character, same X/Y/Z axes | manual · 2026-07-23 |
+| ~ | `voice-kick` | Kick-ish voice with X/Y/Z macros | manual · 2026-07-23 |
+| ~ | `voice-noise` | Noise voice with X/Y/Z macros | manual · 2026-07-23 |
 
 ## Voice model (X/Y/Z macros, pitch)
 

@@ -59,12 +59,12 @@ note = "4x8 step grid = 32nd resolution, every other step a 16th. Steal timing m
 id = "voice-harness"
 title = "Autonomous voice-tuning harness: NRT render -> essentia -> compare to targets"
 status = "done"
-modified = "2026-07-23T21:38:59-05:00"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T21:38:59-05:00"
 area = "infra"
 verify = { kind = "manual", ref = "run docs/audio-analysis/voice_harness.py -> renders 7 voices offline, prints feature table vs sonic-targets" }
 attested = "2026-07-23: built + ran on Mac. luajit runs the real lib/voices.lua resolver -> params; SC NRT (scsynth offline, no device/norns conflict) renders each SynthDef; essentia MusicExtractor measures; prints centroid/rolloff/flatness/zcr/dissonance/band-split vs per-voice targets. Reflects current code each run. Immediately flagged: bass now sub-heavy (band_low 98%), additive dissonance under target, click2 not distinct from click1."
-note = "docs/audio-analysis/{voice_harness.py, render_params.lua}. Mac-only tool (uses /Applications/SuperCollider.app + essentia venv). NRT via `scsynth -N` directly (Score.recordNRT emits a bad -a option). Caveat: percussive clicks measured over silence inflate centroid (transient-dominated) — read flatness/zcr for those."
+note = "docs/audio-analysis/{voice_harness.py, render_params.lua}. Mac-only tool (uses /Applications/SuperCollider.app + essentia venv). NRT via `scsynth -N` directly (Score.recordNRT emits a bad -a option). Caveat: percussive clicks measured over silence inflate centroid (transient-dominated) — read flatness/zcr for those. Now takes a points arg: semicolon 'x,y,z' list or 'sweep:x|y|z|all' (5-point axis sweeps), renders one wav per (voice,point), and prints rms+peak dBFS columns (catches loudness cliffs across a macro). Caveat 2: long-rel drone voices overlap across the 7 hits (0.4s apart) — their rms/peak measures the stack."
 
 [[item]]
 id = "lfo-automation"
@@ -79,67 +79,72 @@ verify = { kind = "manual", ref = "assign an LFO to a macro; hear/see cyclic mod
 [[item]]
 id = "voice-click1"
 title = "Click 1 voice: SC synthdef with X/Y/Z macro inputs"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger click1; X/Y/Z sweep audibly changes timbre" }
+note = "Ikeda click: X morphs one-sample impulse tick -> Ringz ping (ring tracks Y) -> colored noise burst (explicit crossfade weights; raw impulse bypasses the env window so the tick survives). Z = center 2-12k + faint sub-partial for small speakers. Harness: peaks flat -9..-14 dB across X, bands 94% midhigh (z0) -> 98% high (z1), zcr .44. Needs ears for the tick/ping/burst zone feel."
 
 [[item]]
 id = "voice-click2"
 title = "Click 2 voice: second click character, same X/Y/Z axes"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger click2; distinct from click1; macros respond" }
+note = "Rebuilt as woody modal click: Klank wood-bar modes (1/2.756/5.404), 1.5ms noise-burst strike, tanh compaction with 1/ring peak comp, HPF250/LPF6000. X = dead thud (4ms) -> woodblock ring (80ms), Z = center 400-4k. Harness: distinct from click1 (energy 800-4k mid band vs click1's 4k+; 54% midlow at z0), peaks flat -11..-13 across X. Needs ears for woodiness."
 
 [[item]]
 id = "voice-beep"
 title = "Beep voice: sine ping with X/Y/Z macros"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger beep; pitched sine ping; macros shape it" }
+note = "Ikeda dual-sine: X = pure sine -> detune beating (30 cents ^1.5 curve) -> inharmonic partner tone at freq*2.757 arriving past mid-X. Z = cross-FM grit (index to 1.8, ^1.7 curve: clean low, edge late). Y decay 20ms-1.2s. Harness: X/Z are temporal/sideband effects the spectral means undersell (diss .23->.32 on Z) — beating and partner tone need EARS most of all voices."
 
 [[item]]
 id = "voice-additive"
 title = "Additive-chord voice with X/Y/Z macros"
-status = "todo"
-modified = "2026-07-23T17:59:09-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger additive; chordal partials; macros vary spectrum" }
-note = "X = consonance↔dissonance harmonic-complexity sweep (target dissonance .40-.49, full range reachable). See docs/macro-model.md + docs/sonic-targets.md."
+note = "X = consonance↔dissonance harmonic-complexity sweep (target dissonance .40-.49, full range reachable). See docs/macro-model.md + docs/sonic-targets.md. Harness full-sweep verified: X diss .23->.49 centroid 1.4k->3.2k, Z tilt 2.3k->3.1k, Y gate->drone; rms flat across X. No dead zones; left as built."
 
 [[item]]
 id = "voice-noise"
 title = "Noise voice with X/Y/Z macros"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger noise; macros vary colour/shape" }
+note = "X = colour arc: brown -> white -> Latch rate-crush to ~460Hz hold (raster-noton digital crackle, deterministic) with makeup gain. Z = filter center 200-12k + LP/BP/HP morph (rq .55). Harness: Z bands 32% low -> 99% high; X flat/band shifts + audible aliasing character; grit zone x~0.8 is a louder sweet spot (in-band energy). Audition the crush zone."
 
 [[item]]
 id = "voice-kick"
 title = "Kick-ish voice with X/Y/Z macros"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger kick; percussive body; macros vary tone/decay" }
+note = "X = punch: sweep depth (1.5x->6x start) + click + tanh drive together; post-tanh LPF tracks pitch (freq*5, 200-500Hz) so drive can't brighten it. Z = pitch-decay 15-90ms, Y = body length 50-800ms. Harness: X bands 99/1 (pure Bretschneider throb) -> 76/24 (punchy), rms flat; y1 = 93% low deep throb. Audition punch top-end."
 
 [[item]]
 id = "voice-bass"
 title = "Bass voice with X/Y/Z macros"
-status = "todo"
-modified = "2026-07-23T17:59:09-05:00"
+status = "wip"
+modified = "2026-07-23T23:36:39-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger bass; sustained low tone; macros respond" }
-note = "Reference recipe: two detuned sines + touch cross-FM, steep-log VCA (smooth yet defined); long gate + hard release = drone-that-cuts. Worked X/Y/Z decomposition in docs/macro-model.md."
+note = "Reference recipe: two detuned sines + touch cross-FM, steep-log VCA (smooth yet defined); long gate + hard release = drone-that-cuts. Worked X/Y/Z decomposition in docs/macro-model.md. Harness full-sweep verified: X band_low 99% -> 44% (clean sub -> FM edge), Z sub-octave 80->93% low, Y 30ms gate -> 3s drone; peaks flat. No dead zones; left as built."
 
 # ── voice model ─────────────────────────────────────────────────────────────
 [[item]]
