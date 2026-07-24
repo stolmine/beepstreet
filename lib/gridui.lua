@@ -76,9 +76,10 @@ function GridUI.key(x, y, z)
   -- strips
   for _, ax in ipairs(AXES) do
     if y == STRIP_ROW[ax] and x >= 1 and x <= n then
-      if z == 1 then
-        set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, x))
-        if x == 1 then                          -- hold lowest key -> drop to zero
+      if x == 1 then
+        -- lowest key: debounce tap vs hold. Defer the tap so a hold goes cleanly
+        -- to zero without first flashing the coarse value (1/n ≈ 0.06).
+        if z == 1 then
           hold_id = hold_id + 1
           local tok = hold_id
           zero_pending[ax] = tok
@@ -86,13 +87,18 @@ function GridUI.key(x, y, z)
             clock.sleep(HOLD_ZERO_S)
             if zero_pending[ax] == tok then
               zero_pending[ax] = nil
-              set_axis(ax, 0)
+              set_axis(ax, 0)                    -- clean off, no intermediate
               GridUI.redraw()
             end
           end)
+        else                                     -- release
+          if zero_pending[ax] then               -- before threshold -> it was a tap
+            zero_pending[ax] = nil
+            set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, 1))
+          end                                    -- else: hold already fired zero
         end
-      elseif x == 1 then
-        zero_pending[ax] = nil                   -- released before threshold -> keep the fine tap
+      elseif z == 1 then
+        set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, x))
       end
       GridUI.redraw()
       return true

@@ -5,15 +5,15 @@
 -- fractional-brightness top key (a bar-graph fader).
 --
 --   coarse : tap key k        -> fill k keys (value = k/n, top key full).
---   fine   : re-tap the top key -> cycle through 8 stops (down, then wrap). The
---            fractional stops render 2 brightness-levels apart (2,4,..,14 + full)
---            so they're actually discernible; 16 adjacent levels are not.
+--   fine   : re-tap the top key -> cycle through 4 stops (down, then wrap). The
+--            fractional stops render spread across the brightness range so they're
+--            clearly distinct; a stack of 16 adjacent levels is not readable.
 --            key 1 also reaches 0, so the value can drop to true zero.
 --
 -- units are the integer currency: units in [0, n*LEVELS]; value = units/(n*LEVELS).
 
 local Strip = {}
-local LEVELS = 8   -- fine stops per key
+local LEVELS = 4   -- fine stops per key
 
 local function clamp(x, lo, hi) if x < lo then return lo elseif x > hi then return hi else return x end end
 
@@ -47,7 +47,7 @@ function Strip.render(g, row, n, v)
   for x = 1, n do
     local lvl = 0
     if x <= fk then lvl = 15
-    elseif x == fk + 1 and rem > 0 then lvl = math.min(15, rem * 2) end   -- space stops 2 apart
+    elseif x == fk + 1 and rem > 0 then lvl = math.floor(rem * 15 / LEVELS + 0.5) end  -- spread stops across range
     g:led(x, row, lvl)
   end
 end
