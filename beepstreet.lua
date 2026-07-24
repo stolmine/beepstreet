@@ -52,7 +52,11 @@ local function trig_voice(v, st)
     if st.pitch ~= nil then pitch = st.pitch end
   end
   local p = synth.resolve(v.type, m)
-  engine.trig(musicutil.note_num_to_freq(pitch), p.amp * vol, p.atk, p.rel, p.curve, pan, p.detune, p.fmIndex)
+  local fn = engine[v.type]                          -- one command per voice type
+  if fn then
+    fn(musicutil.note_num_to_freq(pitch), p.amp * vol, p.atk, p.rel, p.curve, pan,
+       p.p1 or 0, p.p2 or 0, p.p3 or 0)
+  end
 end
 
 function init()
