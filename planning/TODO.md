@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**25 items** — 2 done, 23 todo. *Rendered 2026-07-23.*
+**25 items** — 2 done, 1 wip, 22 todo. *Rendered 2026-07-23.*
 
 ## Engine (SuperCollider DSP)
 
@@ -66,7 +66,7 @@ check`): a `done` item must have a real test or its named artifact.*
 
 | | id | item | verify |
 |---|---|---|---|
-|   | `clock-transport` | Clock/transport drives sequencer at 32nd-note resolution | manual · 2026-07-23 |
+| ~ | `clock-transport` | Clock/transport drives sequencer at 32nd-note resolution | manual · 2026-07-23 |
 |   | `lfo-automation` | Assignable LFOs modulate voice params (X/Y/Z, vol, pan) | manual · 2026-07-23 |
 |   | `params-persistence` | norns params defined + pset save/load restores full instrument state | manual · 2026-07-23 |
 | ✓ | `ledger-regime` | Ledger + gate regime stood up; scripts/dev check exits 0 | manual *(attested)* · 2026-07-23 |
