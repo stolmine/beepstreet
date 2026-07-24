@@ -47,12 +47,13 @@ verify = { kind = "manual", ref = "save a pset, reload script, load pset — voi
 [[item]]
 id = "clock-transport"
 title = "Clock/transport drives sequencer at 32nd-note resolution"
-status = "wip"
-modified = "2026-07-23T19:09:55-05:00"
+status = "done"
+modified = "2026-07-23T19:13:19-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "infra"
 verify = { kind = "manual", ref = "tempo change tracks; steps fire on the 32nd grid" }
-note = "4x8 step grid = 32nd resolution, every other step a 16th. Steal timing model from gladiola. lib/seq.lua: clock.sync(1/8) coroutine, transport start/stop/reset (K2 toggles; also external Link/MIDI), stand-in 16th-pulse pattern with beat accents. E1=tempo. Awaits on-device timing attest."
+attested = "2026-07-23: verified on the physical norns — sequencer self-plays at 32nd resolution, K2 toggles transport, E1 changes tempo and playback tracks it; clock/bpm/macro-axes/manual-trig all working."
+note = "4x8 step grid = 32nd resolution, every other step a 16th. Steal timing model from gladiola. lib/seq.lua: clock.sync(1/8) coroutine, transport start/stop/reset (K2 toggles; also external Link/MIDI), stand-in 16th-pulse pattern with beat accents. E1=tempo. Real grid-authored steps come with step-sequencer."
 
 [[item]]
 id = "lfo-automation"
