@@ -145,10 +145,11 @@ note = "Core UX conceit: X/Y/Z are uniform axis names; each voice defines what a
 id = "pitch-select-grid"
 title = "Discrete pitch selected via grid (not a knob)"
 status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+modified = "2026-07-23T20:16:24-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "voice"
 verify = { kind = "manual", ref = "grid selection sets a discrete pitch per voice/step" }
+note = "DESIGN LOCKED (docs/grid-layout.md): modal keyboard — hold a step, the 31 non-held step pads become a scale-quantized keyboard; tap sets that step's absolute pitch. Octave -/+ on the global row (row 8) during hold; keyboard auto-centers on the step's current note. Root+scale per-voice (musicutil). Next increment."
 
 # ── sequencing ──────────────────────────────────────────────────────────────
 [[item]]
@@ -165,21 +166,23 @@ note = "lib/gridui.lua: 4x8 block (rows=beats, cols=8 thirty-seconds/beat), tap 
 [[item]]
 id = "param-lock"
 title = "Hold a step + strips to param-lock X/Y/Z for that step"
-status = "wip"
-modified = "2026-07-23T19:32:13-05:00"
+status = "done"
+modified = "2026-07-23T20:16:24-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "seq"
 verify = { kind = "manual", ref = "held step captures strip values; unheld strip edits are global" }
-note = "Steal the hold-to-plock interaction pattern from gladiola. lib/strip.lua: coarse-tap-along + fine re-tap-top (n*15 res via 4-bit brightness; key 1 reaches 0). Three strips rows 6-8 = X/Y/Z. Hold a step + edit strip = plock (turns step on); no hold = global macro; step tap w/o strip = toggle. Also advances grid-voice-page (the strip layout)."
+attested = "2026-07-23: verified on device — hold a step + edit a strip locks X/Y/Z to it (turns it on); no hold edits the global macro; tap toggles. Fine control refined (4 stops, spaced brightness) and hold-lowest-key = clean zero, both confirmed working."
+note = "gladiola-style hold-to-plock. lib/strip.lua: coarse-tap-along + fine re-tap-top (4 stops, spread brightness); hold lowest key = debounced clean zero. Strips at rows 5-7 = X/Y/Z. Extended to the whole grid by the modal law in docs/grid-layout.md."
 
 [[item]]
 id = "adsr-mix-microgrid"
-title = "Micro-grid edits attack/decay/volume/pan (3 settings each)"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+title = "Per-voice micro-fader quadrant (vol/pan/prob/…), per-step-plockable"
+status = "wip"
+modified = "2026-07-23T20:16:24-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "seq"
-verify = { kind = "manual", ref = "soft|normal|loud, short|normal|long attack/decay, left|mid|right pan; per-step when a step is held, else global" }
+verify = { kind = "manual", ref = "quadrant column faders set vol/pan/probability per-voice; held step plocks them; audible" }
+note = "RESHAPED: attack/decay are the Y macro now (docs/macro-model.md), not here. Right quadrant (rows 1-4, cols 9-16) = vertical column faders (lib/fader.lua): unipolar fill-from-bottom, bipolar center-detent. Built: vol/pan/prob. Planned columns: clock-div, length, send, transpose (clock-div/length are per-voice-only, inert on hold). See docs/grid-layout.md."
 
 [[item]]
 id = "patterns-per-voice"
@@ -202,13 +205,13 @@ verify = { kind = "manual", ref = "define a set order; playback advances through
 # ── grid ────────────────────────────────────────────────────────────────────
 [[item]]
 id = "grid-voice-page"
-title = "Voice page layout: 4x8 steps + three 16-pad strips for X/Y/Z"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+title = "Voice page layout: steps + micro faders + X/Y/Z strips + global row"
+status = "wip"
+modified = "2026-07-23T20:16:24-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "grid"
-verify = { kind = "screenshot", ref = "grid photo showing step block + three param strips" }
-note = "Also room for the attack/decay/vol/pan micro-grid. This layout is the hard part."
+verify = { kind = "screenshot", ref = "grid photo: step block + micro-fader quadrant + three strips + transport row" }
+note = "Full reserved map + modal law in docs/grid-layout.md. Built: steps (1-4/1-8), micro faders (1-4/9-16), X/Y/Z strips (5-7), transport on row 8. Modal law 'hold a step = whole grid edits it' — strips+faders plock; pitch keyboard on the step block is the remaining piece (pitch-select-grid)."
 
 # ── ui ──────────────────────────────────────────────────────────────────────
 [[item]]
@@ -233,11 +236,12 @@ verify = { kind = "manual", ref = "adjust a voice's level/pan on the mix page; a
 [[item]]
 id = "per-step-mix"
 title = "Per-step volume/pan variation available from voice pages"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T20:16:24-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "mix"
 verify = { kind = "manual", ref = "plock vol/pan on a step; differs from the voice's mix-page default" }
+note = "Delivered via the micro-fader quadrant: hold a step + edit the vol/pan/prob fader = per-step plock over the per-voice default. Shares the code path with adsr-mix-microgrid. Awaits on-device attest."
 
 # ── fx ──────────────────────────────────────────────────────────────────────
 [[item]]

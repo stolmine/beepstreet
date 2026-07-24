@@ -14,22 +14,28 @@ local gridui = include('beepstreet/lib/gridui')
 
 local g = grid.connect()          -- grid-safe: returns an object even with none attached
 local xyz = { x = 0.30, y = 0.30, z = 0.00 }   -- GLOBAL macro coordinate
+local voice = { vol = 1.0, pan = 0.0, prob = 1.0 }  -- per-voice micro params (quadrant faders)
 local sel = 'x'                   -- which axis E3 edits
-local pattern = {}                -- 32 steps: false = off, table = on (may carry x/y/z plocks)
+local pattern = {}                -- 32 steps: false = off, table = on (may carry plocks)
 local seq
 local screen_dirty = true
 
 local AXES = { 'x', 'y', 'z' }
 local YROW = { x = 34, y = 44, z = 54 }
 
--- resolve a step's macro coordinate: per-axis plock over the global macro
+-- resolve + trigger: per-step plocks (x/y/z, vol/pan/prob) over global/per-voice
 local function do_trig(st)
   local m = xyz
+  local vol, pan = voice.vol, voice.pan
   if type(st) == 'table' then
+    local prob = st.prob or voice.prob                 -- probability gates sequenced steps only
+    if prob < 1 and math.random() > prob then return end
     m = { x = st.x or xyz.x, y = st.y or xyz.y, z = st.z or xyz.z }
+    if st.vol ~= nil then vol = st.vol end
+    if st.pan ~= nil then pan = st.pan end
   end
   local p = voices.resolve('beep', m)
-  engine.trig(p.freq, p.amp, p.atk, p.rel, p.curve, p.pan, p.detune, p.fmIndex)
+  engine.trig(p.freq, p.amp * vol, p.atk, p.rel, p.curve, pan, p.detune, p.fmIndex)
 end
 
 function init()
@@ -40,7 +46,7 @@ function init()
     on_trig = function(st) do_trig(st) end,
     on_step = function(_) screen_dirty = true; gridui.redraw() end,
   }
-  gridui.init(g, pattern, seq, xyz)
+  gridui.init(g, pattern, seq, xyz, voice)
   gridui.redraw()
 
   clock.run(function()
@@ -101,7 +107,7 @@ function redraw()
     screen.move(20, yy); screen.text(string.format('%.2f', gridui.axis_value(ax)))
     screen.rect(48, yy - 4, 72 * gridui.axis_value(ax), 3); screen.fill()
   end
-  screen.level(3); screen.move(4, 62); screen.text('tap step · hold+strip = plock')
+  screen.level(3); screen.move(4, 62); screen.text('steps · faders · strips · hold=plock')
   screen.update()
 end
 

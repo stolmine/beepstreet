@@ -1,42 +1,49 @@
--- lib/gridui.lua — grid rendering + input for the voice page. [beep:param-lock]
+-- lib/gridui.lua — grid rendering + input for the voice page. [beep:grid-voice-page]
 --
--- Layout (rows top→bottom on a 16-wide grid):
---   rows 1-4  4x8 step block (rows=beats, cols=8 thirty-seconds/beat) = 32 steps
---   row  6    X strip   } three param-strips spanning the grid width; each encodes
---   row  7    Y strip   } a macro axis via lib/strip (coarse tap + fine re-tap).
---   row  8    Z strip   }
+-- Regions (see docs/grid-layout.md):
+--   rows 1-4 cols 1-8   step block (rows=beats, cols=32nds) = 32 steps
+--   rows 1-4 cols 9-16  per-voice micro faders (lib/fader): vol / pan / prob …
+--   rows 5-7            X / Y / Z macro strips (lib/strip)
+--   row  8             GLOBAL: transport (play/pause, reset) + paging (later)
 --
--- Hold-to-plock: hold a step pad and edit a strip → that edit locks to the step
--- (and turns it on). No step held → the strip edits the GLOBAL macro. A step press
--- with no strip touch toggles the step on release (tap). Steps carry their plocks
--- as st.x / st.y / st.z; the sequencer falls back to the global macro per-axis.
+-- Modal law: holding a step retargets edits to that step (plock). Strips → the
+-- step's X/Y/Z; per-step-able faders → the step's vol/pan/prob. Un-held = per-voice.
 
 local Strip = include('beepstreet/lib/strip')
+local Fader = include('beepstreet/lib/fader')
 
 local GridUI = {}
 
 local STEP_COLS, STEP_ROWS = 8, 4
-local STRIP_ROW = { x = 6, y = 7, z = 8 }
+local STRIP_ROW = { x = 5, y = 6, z = 7 }
 local AXES = { 'x', 'y', 'z' }
+local GLOBAL_ROW = 8
 
-local g, pattern, seq_ref, macro
+-- per-voice micro-fader columns. `step = true` means the fader plocks per-step.
+local QUAD = {
+  { col = 9,  key = 'vol',  mode = 'uni', step = true },
+  { col = 10, key = 'pan',  mode = 'bi',  step = true },
+  { col = 11, key = 'prob', mode = 'uni', step = true },
+}
+
+local g, pattern, seq_ref, macro, voice
 local held_step = nil
 local plock_touched = false
 
-local HOLD_ZERO_S = 0.4          -- hold the lowest strip key this long -> value 0
-local hold_id = 0                -- monotonic token so stale hold timers no-op
-local zero_pending = {}          -- axis -> token of the in-flight hold
+local HOLD_ZERO_S = 0.4
+local hold_id = 0
+local zero_pending = {}
 
 local function ncols() return (g and g.cols and g.cols > 0) and g.cols or 16 end
 local function step_of(x, y) return (y - 1) * STEP_COLS + x end
 
-function GridUI.init(grid_dev, pat, seq, macro_tbl)
-  g, pattern, seq_ref, macro = grid_dev, pat, seq, macro_tbl
+function GridUI.init(grid_dev, pat, seq, macro_tbl, voice_tbl)
+  g, pattern, seq_ref, macro, voice = grid_dev, pat, seq, macro_tbl, voice_tbl
 end
 
 function GridUI.held() return held_step end
 
--- the value shown/edited for an axis: held step's plock, else the global macro
+-- ── value routing: held step's plock, else global/per-voice ───────────────────
 function GridUI.axis_value(ax)
   if held_step then
     local st = pattern[held_step]
@@ -48,15 +55,28 @@ end
 local function set_axis(ax, v)
   if held_step then
     local st = pattern[held_step]
-    if not st then st = {}; pattern[held_step] = st end   -- plocking an off step turns it on
-    st[ax] = v
-    plock_touched = true
-  else
-    macro[ax] = v
-  end
+    if not st then st = {}; pattern[held_step] = st end
+    st[ax] = v; plock_touched = true
+  else macro[ax] = v end
 end
 
--- returns true if the press was consumed
+local function quad_value(p)
+  if held_step and p.step then
+    local st = pattern[held_step]
+    if st and st[p.key] ~= nil then return st[p.key] end
+  end
+  return voice[p.key]
+end
+
+local function set_quad(p, v)
+  if held_step and p.step then
+    local st = pattern[held_step]
+    if not st then st = {}; pattern[held_step] = st end
+    st[p.key] = v; plock_touched = true
+  else voice[p.key] = v end
+end
+
+-- ── input ─────────────────────────────────────────────────────────────────────
 function GridUI.key(x, y, z)
   local n = ncols()
   -- step block
@@ -65,20 +85,25 @@ function GridUI.key(x, y, z)
     if z == 1 then
       held_step, plock_touched = s, false
     else
-      if held_step == s and not plock_touched then         -- tap → toggle
+      if held_step == s and not plock_touched then
         if pattern[s] then pattern[s] = false else pattern[s] = {} end
       end
       held_step, plock_touched = nil, false
     end
-    GridUI.redraw()
-    return true
+    GridUI.redraw(); return true
+  end
+  -- micro faders
+  for _, p in ipairs(QUAD) do
+    if z == 1 and x == p.col and y >= 1 and y <= STEP_ROWS then
+      local v = quad_value(p)
+      set_quad(p, (p.mode == 'bi') and Fader.bi_tap(v, y) or Fader.uni_tap(v, y))
+      GridUI.redraw(); return true
+    end
   end
   -- strips
   for _, ax in ipairs(AXES) do
     if y == STRIP_ROW[ax] and x >= 1 and x <= n then
       if x == 1 then
-        -- lowest key: debounce tap vs hold. Defer the tap so a hold goes cleanly
-        -- to zero without first flashing the coarse value (1/n ≈ 0.06).
         if z == 1 then
           hold_id = hold_id + 1
           local tok = hold_id
@@ -86,46 +111,57 @@ function GridUI.key(x, y, z)
           clock.run(function()
             clock.sleep(HOLD_ZERO_S)
             if zero_pending[ax] == tok then
-              zero_pending[ax] = nil
-              set_axis(ax, 0)                    -- clean off, no intermediate
-              GridUI.redraw()
+              zero_pending[ax] = nil; set_axis(ax, 0); GridUI.redraw()
             end
           end)
-        else                                     -- release
-          if zero_pending[ax] then               -- before threshold -> it was a tap
-            zero_pending[ax] = nil
-            set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, 1))
-          end                                    -- else: hold already fired zero
+        elseif zero_pending[ax] then
+          zero_pending[ax] = nil
+          set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, 1))
         end
       elseif z == 1 then
         set_axis(ax, Strip.tap(GridUI.axis_value(ax), n, x))
       end
-      GridUI.redraw()
-      return true
+      GridUI.redraw(); return true
     end
+  end
+  -- global row: transport
+  if z == 1 and y == GLOBAL_ROW then
+    if x == 1 then seq_ref:toggle()
+    elseif x == 2 then seq_ref:reset() end
+    GridUI.redraw(); return true
   end
   return false
 end
 
+-- ── render ──────────────────────────────────────────────────────────────────
 function GridUI.redraw()
   if not g then return end
   local n = ncols()
   g:all(0)
+  -- steps
   local pos = seq_ref and seq_ref.pos or 0
   for yy = 1, STEP_ROWS do
     for xx = 1, STEP_COLS do
       local s = step_of(xx, yy)
       local lvl
-      if pattern[s] then lvl = 8
-      elseif (xx % 2 == 1) then lvl = 4 else lvl = 3 end
+      if pattern[s] then lvl = 8 elseif (xx % 2 == 1) then lvl = 4 else lvl = 3 end
       if s == held_step then lvl = 12 end
-      if s == pos then lvl = 15 end                         -- playhead wins
+      if s == pos then lvl = 15 end
       g:led(xx, yy, lvl)
     end
   end
-  for _, ax in ipairs(AXES) do
-    Strip.render(g, STRIP_ROW[ax], n, GridUI.axis_value(ax))
+  -- micro faders
+  for _, p in ipairs(QUAD) do
+    if p.col <= n then
+      if p.mode == 'bi' then Fader.bi_render(g, p.col, quad_value(p))
+      else Fader.uni_render(g, p.col, quad_value(p)) end
+    end
   end
+  -- strips
+  for _, ax in ipairs(AXES) do Strip.render(g, STRIP_ROW[ax], n, GridUI.axis_value(ax)) end
+  -- global row: transport
+  g:led(1, GLOBAL_ROW, (seq_ref and seq_ref:is_running()) and 15 or 4)   -- play/pause
+  g:led(2, GLOBAL_ROW, 4)                                                 -- reset
   g:refresh()
 end
 
