@@ -72,10 +72,19 @@ that already has a note auto-centers the keyboard on it. Root + scale are per-vo
 Layout: scale-degrees per row (legible for stepwise lines). Per-voice default pitch
 via a full-grid pitch page (later) or "inherits last note."
 
+Planned: a **chromatic / scale-quantized toggle** available while the keyboard is up
+(`keyboard-chromatic` item) — chromatic = isomorphic 12-tone layout, scale = the
+windowed scale above.
+
 ## Global row (row 8)
 
 Transport (play/pause `(1,8)`, reset `(2,8)`) + paging to voice pages / arrangement /
 mixer (later). Repurposed to octave/scale helpers while a step is held.
+
+Planned global infra on this bar: **key + scale selection** (`key-scale-select` item)
+— sets root + scale (per-voice fields today; OPEN whether the selector is global with
+per-voice override, or per-voice). This is also where a chromatic/scale toggle for the
+keyboard would surface.
 
 ## Implementation status
 

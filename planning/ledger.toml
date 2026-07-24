@@ -144,12 +144,33 @@ note = "Core UX conceit: X/Y/Z are uniform axis names; each voice defines what a
 [[item]]
 id = "pitch-select-grid"
 title = "Discrete pitch selected via grid (not a knob)"
-status = "wip"
-modified = "2026-07-23T20:39:01-05:00"
+status = "done"
+modified = "2026-07-23T20:45:08-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "voice"
 verify = { kind = "manual", ref = "grid selection sets a discrete pitch per voice/step" }
-note = "lib/keyboard.lua (musicutil scale window, 32 pads bottom-low→top-high). Hold a step past 0.28s → step block becomes the keyboard; tap sets that step's absolute pitch (turns it on); octave -/+ on row 8; window auto-centers on the step's note; root landmarks lit. Pitch decoupled from Z (Z now = FM grit; freq from note_num_to_freq). Per-voice root/scale (default C1 Natural Minor, default note C3). Awaits on-device attest."
+attested = "2026-07-23: verified on device — hold a step reveals the scale keyboard; tapping sets that step's pitch; octave -/+ and auto-center work; steps play their notes; screen shows note name. Pitch decoupled from Z (now FM grit)."
+note = "lib/keyboard.lua (musicutil scale window, 32 pads bottom-low→top-high). Hold a step past 0.28s → keyboard; tap sets absolute pitch (turns step on); octave -/+ on row 8; auto-center; root landmarks. Per-voice root/scale (default C1 Natural Minor, note C3)."
+
+[[item]]
+id = "key-scale-select"
+title = "Global row control to set key (root) + scale"
+status = "todo"
+modified = "2026-07-23T20:45:08-05:00"
+created = "2026-07-23T20:45:08-05:00"
+area = "voice"
+verify = { kind = "manual", ref = "pick a key/scale from the global row; the pitch keyboard reflows to it" }
+note = "Global infra (future). Root+scale are per-voice fields today; a global-row selector sets them. OPEN: global (one key/scale for the instrument) vs per-voice override — lean global default with per-voice override since the data is already per-voice. Lives on the row-8 global bar (see docs/grid-layout.md, ui-page-routing)."
+
+[[item]]
+id = "keyboard-chromatic"
+title = "Pitch keyboard offers chromatic vs scale-quantized mode"
+status = "todo"
+modified = "2026-07-23T20:45:08-05:00"
+created = "2026-07-23T20:45:08-05:00"
+area = "voice"
+verify = { kind = "manual", ref = "toggle chromatic when the keyboard is up; all 12 semitones become selectable" }
+note = "Future option surfaced while the keyboard is called (a toggle on row 8 alongside octave -/+, or a per-voice setting). Chromatic = isomorphic 12-tone layout; scale = current windowed scale. lib/keyboard.lua would gain a mode. See docs/grid-layout.md."
 
 # ── sequencing ──────────────────────────────────────────────────────────────
 [[item]]
