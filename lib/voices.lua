@@ -51,26 +51,31 @@ local resolvers = {
     return { amp = 0.30, atk = 0.0, rel = s.rel, curve = s.curve,
              p1 = m.x, p2 = xlerp(400, 4000, m.z), p3 = 0 }
   end,
-  -- noise: X = colour arc brown -> white -> rate-crushed crackle, Z = center + LP/BP/HP morph
+  -- noise (Rauschen model morph): X = white -> crush -> crackle -> velvet -> particle
+  -- (tent-weight stations), Z = center + LP/BP/HP morph. Texture rates track pitch.
   noise = function(m)
     local s = shape(m.y, 0.005, 1.00)
     return { amp = 0.28, atk = s.atk, rel = s.rel, curve = s.curve,
-             p1 = m.x * 2, p2 = xlerp(200, 12000, m.z), p3 = m.z }
+             p1 = m.x * 4, p2 = xlerp(200, 12000, m.z), p3 = m.z }
   end,
-  -- kick: X = punch (sweep depth + click + drive), Z = pitch-decay (soft throb -> long fall)
+  -- kick (Ikeda bare stab -> Tessera clang): X = modal lattice/fold (pure 40Hz-style
+  -- sub stab -> compound inharmonic clang), Z = pitch-decay. Y = body length (the
+  -- Ikeda reference stab is ~350ms: y ~0.7).
   kick = function(m)
-    local s = shape(m.y, 0.05, 0.80)
-    return { amp = 0.34, atk = 0.0, rel = s.rel, curve = s.curve,
-             p1 = m.x, p2 = xlerp(0.015, 0.09, m.z), p3 = 0 }
+    local s = shape(m.y, 0.04, 0.90)
+    return { amp = 0.34, atk = 0.001, rel = s.rel, curve = s.curve,
+             p1 = m.x, p2 = xlerp(0.008, 0.12, m.z), p3 = 0 }
   end,
-  -- additive/FM chord drone (Fell): stacked FM voices, irrational modulator ratios.
-  -- X = FM index (consonant sine chord -> dense inharmonic clang), Z = brightness tilt
+  -- additive chord engine (Plaits-style): X = continuous chord structure
+  -- (OCT-P5-sus4-m-m7-m9-m11, ratio-interpolated glide), Z = brightness rolloff +
+  -- voicing rotation + FM sidebands + stereo width (dark close chord -> bright
+  -- rotated rough). Micro-detune/drift quaver is built into the SynthDef.
   additive = function(m)
     local s = shape(m.y, 0.02, 3.00)   -- rel = gate/window length (drone, not pluck)
-    return { amp = 0.22, atk = s.atk, rel = s.rel, curve = s.curve,
-             p1 = lerp(0, 8, m.x),  -- FM index
-             p2 = m.z,               -- brightness tilt (upper-voice level)
-             p3 = 0 }
+    return { amp = 0.26, atk = s.atk, rel = s.rel, curve = s.curve,
+             p1 = 6 * m.x,             -- chord position (0..6 across the 7-chord table)
+             p2 = m.z ^ 0.8,           -- brightness arrives early in Z
+             p3 = m.z ^ 1.4 }          -- rotation/FM/width arrive later in Z
   end,
 }
 
