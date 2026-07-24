@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**30 items** — 7 done, 11 wip, 12 todo. *Rendered 2026-07-23.*
+**30 items** — 7 done, 11 wip, 12 todo. *Rendered 2026-07-24.*
 
 ## Engine (SuperCollider DSP)
 

@@ -43,23 +43,18 @@ Engine_Beepstreet : CroneEngine {
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// click1 — bright/ultrasonic Ikeda click: morphs impulse-tick -> resonant ping -> noise burst.
-		//   p1 = morph 0..1 (tick->ping->burst), p2 = center freq (2k..12k from resolver)
-		SynthDef(\click1, { arg out, freq=440, amp=0.3, atk=0, rel=0.01, curve= -4, pan=0, p1=0, p2=6000, p3=0;
-			var env, c, w, tickw, pingw, burstw, ping, burst, sig;
-			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
+		// click1 — bright Ikeda click: impulse<->noise excitation rung through a Ringz,
+		// HPF'd. Reliable/audible (an ultra-short ultrasonic tick reads as silence on the
+		// device). X = tonal->noise, Z = ring/center freq, Y (rel) = ring length.
+		//   p1 = noise amount (0..1), p2 = ring/center freq
+		SynthDef(\click1, { arg out, freq=440, amp=0.4, atk=0, rel=0.01, curve= -4, pan=0, p1=0, p2=6000, p3=0;
+			var env, c, exc, sig;
+			env = EnvGen.ar(Env.perc(0.0002, rel.max(0.004), 1, curve), doneAction: Done.freeSelf);
 			c = p2.clip(1000, 16000);
-			w = p1.clip(0, 1) * 2;                                             // 0 tick .. 1 ping .. 2 burst
-			tickw  = (1 - w).clip(0, 1);
-			pingw  = (1 - (w - 1).abs).clip(0, 1);
-			burstw = (w - 1).clip(0, 1);
-			ping  = Ringz.ar(Impulse.ar(0), c, rel.clip(0.004, 0.08)) * 0.9;   // pitched ping, ring tracks Y (rel)
-			burst = BPF.ar(WhiteNoise.ar, c, 1.2) * 2.0;                       // colored noise burst
-			sig = (ping * pingw) + (burst * burstw) + (Ringz.ar(Impulse.ar(0), c, 0.004) * 0.6 * tickw);
-			sig = HPF.ar(sig * env, 300);
-			sig = sig + (Impulse.ar(0) * 0.55 * tickw);                        // raw one-sample impulse bypasses the env window
-			sig = sig + (Ringz.ar(Impulse.ar(0), (c * 0.125).clip(200, 2000), 0.012) * 0.05 * env); // faint sub-partial so ultrasonic reads on small speakers
-			Out.ar(out, Pan2.ar(sig * amp, pan));
+			exc = (Impulse.ar(0) * (1 - p1.clip(0, 1))) + (WhiteNoise.ar * p1.clip(0, 1));
+			sig = Ringz.ar(exc, c, rel.clip(0.004, 0.06)) * 0.6;
+			sig = HPF.ar(sig, 400);
+			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
 		// click2 — woody/dry modal click (SND woodblock).

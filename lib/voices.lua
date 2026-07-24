@@ -41,8 +41,8 @@ local resolvers = {
   -- bright ultrasonic click (Ikeda): X = tick -> pitched ping -> noise burst (morph),
   -- Z = center 2-12k. Y (rel) is both window and ping ring length.
   click1 = function(m)
-    local s = shape(m.y, 0.0008, 0.06)
-    return { amp = 0.30, atk = 0.0, rel = s.rel, curve = s.curve,
+    local s = shape(m.y, 0.004, 0.06)
+    return { amp = 0.40, atk = 0.0, rel = s.rel, curve = s.curve,
              p1 = m.x, p2 = xlerp(2000, 12000, m.z), p3 = 0 }
   end,
   -- woody/dry modal click (SND): X = dead thud -> woodblock ring, Z = center 400-4k

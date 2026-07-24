@@ -31,6 +31,7 @@ local g, seq_ref, vfn, set_cur_cb, NV
 local cur_local = 1
 local held_step = nil
 local plock_touched = false
+local press_time = 0
 
 local HOLD_ZERO_S = 0.4
 local KB_HOLD_S = 0.28
@@ -110,7 +111,7 @@ function GridUI.key(x, y, z)
   if x >= 1 and x <= STEP_COLS and y >= 1 and y <= STEP_ROWS then
     if z == 1 then
       if held_step == nil then
-        held_step, plock_touched = step_of(x, y), false
+        held_step, plock_touched, press_time = step_of(x, y), false, util.time()
         local s = held_step
         clock.run(function()
           clock.sleep(KB_HOLD_S)
@@ -126,7 +127,8 @@ function GridUI.key(x, y, z)
       end
     else
       if step_of(x, y) == held_step then
-        if not plock_touched then
+        -- toggle only on a genuine quick tap; a deliberate hold never toggles
+        if not plock_touched and (util.time() - press_time) < KB_HOLD_S then
           local s = held_step
           if P()[s] then P()[s] = false else P()[s] = {} end
         end
