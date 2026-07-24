@@ -71,115 +71,54 @@ Engine_Beepstreet : CroneEngine {
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// noise — Rauschen-style model morph: white -> crushed -> crackle -> velvet ->
-		// particle, tent-weight crossfade on X, through the LP/BP/HP morph (Z). Textures
-		// are pitch-tracked: crush hold rate / velvet density / particle rate follow the
-		// grid freq (sequenceable texture rate, stock UGens only).
-		//   p1 = model position 0..4 (white/crush/crackle/velvet/particle)
+		// noise — colour arc brown->white->rate-crushed digital crackle, through an LP/BP/HP morph.
+		//   p1 = colour 0..2 (0 brown, 1 white, 1..2 latch sample-rate crush toward ~750Hz hold rate)
 		//   p2 = filter center, p3 = filter morph (0 LP..0.5 BP..1 HP)
 		SynthDef(\noise, { arg out, freq=440, amp=0.28, atk=0.005, rel=0.2, curve= -4, pan=0, p1=0, p2=4000, p3=0;
-			var env, pos, w, white, crush, crackle, velvet, ptrig, particle, sig, c;
+			var src, holdRate, sig, env, c, w;
 			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			pos = p1.clip(0, 4);
-			w = Array.fill(5, { arg i; (1 - (pos - i).abs).clip(0, 1) });
-			white = WhiteNoise.ar;
-			crush = Latch.ar(WhiteNoise.ar, Impulse.ar((freq * 8).clip(400, 8000)));
-			crackle = Crackle.ar(1.9) * 6;
-			velvet = Dust2.ar((freq * 6).clip(300, 6000)) * 5;
-			ptrig = Dust.ar((freq * 0.8).clip(15, 200));
-			particle = Ringz.ar(ptrig, TExpRand.ar(300, 5000, ptrig), 0.03) * 3;
-			sig = (white * w[0]) + (crush * w[1]) + (crackle * w[2]) + (velvet * w[3]) + (particle * w[4]);
-			c = p2.clip(40, 18000);
-			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]).softclip; // tame spikes, deterministic
+			w = p1.clip(0, 1);
+			src = (BrownNoise.ar * (1 - w)) + (WhiteNoise.ar * w);
+			holdRate = 24000 * (0.5 ** ((p1.clip(1, 2) - 1) * 5.7));           // 24k (transparent) -> ~460Hz (crackle)
+			sig = Latch.ar(src, Impulse.ar(holdRate)) * (1 + ((p1.clip(1, 2) - 1) * 1.2)); // makeup: crush loses band energy
+			c = p2.clip(40, 18000).min(holdRate * 4);   // crushed spectrum dies above ~4x hold rate: keep Z on the live part
+			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]).softclip; // tame resonant crackle spikes, deterministic
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// kick — Ikeda bare sub stab -> Tessera modal clang. A pure pitched sub stab at
-		// X=0; as X rises, an inharmonic modal lattice (cluster around ~10x the
-		// fundamental, two decay tiers: core modes ring, sideband modes snap) fades in,
-		// gets folded, and the sub+bank are soft-clipped TOGETHER (the character is both
-		// slamming the clipper as one). LPF stays deep at X=0 (drive can never brighten
-		// the bare stab) and opens with X so the clang breathes.
-		//   p1 = lattice/clang X 0..1 (bare sub stab -> compound clang), p2 = pitch-decay
-		//   seconds (Z), p3 unused.
-		SynthDef(\kick, { arg out, freq=60, amp=0.34, atk=0.001, rel=0.35, curve= -4, pan=0, p1=0, p2=0.05, p3=0;
-			var env, fenv, sub, fc, spread, ks, amps, rings, exc, bank, clk, pre, sig, cut;
+		// kick — deep sine kick; drive-harmonics removed post-tanh so it stays deep.
+		//   p1 = punch 0..1 (sweep depth + click + drive together), p2 = pitch-decay seconds
+		SynthDef(\kick, { arg out, freq=60, amp=0.34, atk=0, rel=0.3, curve= -4, pan=0, p1=0.3, p2=0.06, p3=0;
+			var env, fenv, body, clk, sig;
 			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			fenv = EnvGen.ar(Env([freq * (1.5 + (p2 * 25)), freq], [p2.clip(0.005, 0.3)], \exp)); // Z: tight thump -> laser fall (depth+time together)
-			sub = SinOsc.ar(fenv);
-			fc = (freq * 10).clip(240, 1600);                          // clang cluster center (~544Hz region)
-			spread = 0.05 + (p1 * 0.13);                               // lattice spacing r
-			ks    = [-5, -3, -2, -1, 0, 1, 2, 4];                      // inharmonic lattice offsets
-			amps  = [0.4, 0.55, 0.7, 0.9, 1, 0.9, 0.7, 0.5];
-			rings = [0.014, 0.016, 0.03, 0.045, 0.05, 0.045, 0.03, 0.015] * (0.6 + p1); // two decay tiers
-			exc = Impulse.ar(0) + (WhiteNoise.ar * EnvGen.ar(Env.perc(0.0001, 0.002)) * 0.5);
-			bank = Klank.ar(`[ (1 + (ks * spread)).max(0.12) * fc, amps, rings ], exc);
-			bank = (bank * 14 * (1 + (p1 * 1.5))).fold2(1);            // fold -> extra clang harmonics at high X
-			clk = HPF.ar(WhiteNoise.ar * EnvGen.ar(Env.perc(0.0001, 0.004)), 3000) * (0.1 + (p1 * 0.35));
-			pre = (sub * (1.15 - (p1 * 0.75))) + (bank * (p1 ** 0.7) * 2.5); // sub ducks as the clang takes over (Ikeda type B = stack alone)
-			sig = (pre * 1.3).softclip;
-			cut = (freq * 5).clip(200, 520).max(fc * p1 * 4.2);        // deep at X=0, opens with X
-			sig = LPF.ar(sig, cut) + clk;
+			fenv = EnvGen.ar(Env([freq * (1.5 + (p1 * 4.5)), freq], [p2.clip(0.005, 0.3)], \exp));
+			body = SinOsc.ar(fenv);
+			body = LPF.ar((body * (1.2 + (p1 * 1.8))).tanh, (freq * 5).clip(200, 500)); // post-tanh LPF tracks pitch: drive can't brighten it
+			clk = HPF.ar(WhiteNoise.ar * EnvGen.ar(Env.perc(0.0001, 0.004)), 3000) * p1 * 0.5;
+			sig = body + clk;
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// additive — Plaits-style chord engine over stacked FM voices, stereo. A 7-chord
-		// table (OCT, P5, sus4, m, m7, m9, m11 — tension-ordered); p1 is a CONTINUOUS
-		// chord position 0..6, linearly interpolating the 4 note ratios between adjacent
-		// chords (chord glide, no snap). p2 = brightness: note-level rolloff (dark
-		// fundamental-heavy -> all notes equal). p3 = voicing/roughness: continuously
-		// lifts lower notes by octaves (rotation through inversions; fractional lift
-		// passes through rough territory — intended) AND raises per-note FM-sideband
-		// index (irrational modulator ratios). Motion: fixed micro-detune per note
-		// (~±0.25%, different L/R) + slow LFNoise1 drift (deliberate Hz-level beating)
-		// => stereo quaver. Stereo width grows with p3. Env is a gate/window
-		// (Env.linen, rel = sustain length).
-		SynthDef(\additive, { arg out, freq=220, amp=0.26, atk=0.01, rel=0.6, curve= -4, pan=0, p1=0, p2=0.5, p3=0;
-			var chords, mods, detL, detR, env, pos, i0, frac, bright, sigL, sigR, width, lvls, norm, notesL, notesR, mid, side;
-			chords = [
-				[1, 2, 2, 4],                  // OCT
-				[1, 1.5, 2, 3],                // P5
-				[1, 1.3333, 2, 2.6667],        // sus4
-				[1, 1.2, 1.5, 2],              // m
-				[1, 1.2, 1.5, 1.7778],         // m7
-				[1, 1.2, 1.5, 2.25],           // m9
-				[1, 1.2, 1.7778, 2.6667]       // m11
-			];
-			mods = [1.41, 1.73, 2.76, 3.16];                           // irrational modulator ratios
-			detL = [0.9975, 1.0025, 0.998, 1.003];                     // fixed micro-detune, L
-			detR = [1.0025, 0.9975, 1.002, 0.997];                     // mirrored, R
+		// additive — 8 partials, inharmonic stretch + rolloff + count.
+		//   p1 = dissonance (inharmonicity), p2 = partial count (1..8), p3 = rolloff
+		// additive/FM chord (Fell): four stacked FM voices at a chord voicing, each with
+		// an IRRATIONAL modulator ratio so the sidebands are inharmonic. X = FM index,
+		// walking a consonant sine chord (index 0) into dense metallic clang. Dissonance
+		// is real inharmonic partials, not a stretched harmonic series.
+		//   env is a gate/window (Env.linen): rel = flat sustain length (drone).
+		//   p1 = FM index (0..8), p2 = brightness tilt (upper-voice level)
+		SynthDef(\additive, { arg out, freq=220, amp=0.22, atk=0.01, rel=0.6, curve= -4, pan=0, p1=0, p2=0.5, p3=0;
+			var sig, env, voices;
+			var ratios = [1, 1.5, 2.0, 3.0];        // chord: root, fifth, octave, twelfth
+			var mods   = [1.41, 1.73, 2.76, 3.16];  // irrational modulator ratios -> inharmonic
 			env = EnvGen.ar(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
-			pos = p1.clip(0, 6);
-			i0 = pos.floor;
-			frac = pos - i0;
-			bright = 0.35 + (0.65 * p2.clip(0, 1));                    // note-level rolloff base
-			lvls = Array.fill(4, { arg k; bright ** k });
-			norm = 0.9 / (lvls.sum + 0.4);
-			notesL = Array.fill(4, { arg k;
-				var a = Select.kr(i0, chords.collect({ arg ch; ch[k] }));
-				var b = Select.kr((i0 + 1).min(6), chords.collect({ arg ch; ch[k] }));
-				var ratio = a + ((b - a) * frac);
-				var lift = ((p3.clip(0, 1) * 3) - k).clip(0, 1);       // rotate lower notes up octaves, continuous
-				var cf = freq * ratio * ((lift * 0.6931).exp);
-				var drift = 1 + (LFNoise1.kr(0.11 + (k * 0.04)) * 0.0015); // slow living detune
-				PMOsc.ar(cf * detL[k] * drift, cf * mods[k], p3.clip(0, 1) * 2.2) * lvls[k]
+			voices = Array.fill(4, { arg i;
+				var c = freq * ratios[i];
+				var lvl = (1 / (i + 1)) * (1 + (p2 * i * 0.6));   // Z lifts the upper voices
+				PMOsc.ar(c, c * mods[i], p1.clip(0, 8)) * lvl;
 			});
-			notesR = Array.fill(4, { arg k;
-				var a = Select.kr(i0, chords.collect({ arg ch; ch[k] }));
-				var b = Select.kr((i0 + 1).min(6), chords.collect({ arg ch; ch[k] }));
-				var ratio = a + ((b - a) * frac);
-				var lift = ((p3.clip(0, 1) * 3) - k).clip(0, 1);
-				var cf = freq * ratio * ((lift * 0.6931).exp);
-				var drift = 1 + (LFNoise1.kr(0.13 + (k * 0.05)) * 0.0015);
-				PMOsc.ar(cf * detR[k] * drift, cf * mods[k], p3.clip(0, 1) * 2.2) * lvls[k]
-			});
-			sigL = Mix.new(notesL) * norm;
-			sigR = Mix.new(notesR) * norm;
-			width = 0.25 + (p3.clip(0, 1) * 0.45);                     // stereo width opens with Z
-			mid  = (sigL + sigR) * 0.5;
-			side = (sigL - sigR) * 0.5 * width * 2;
-			sigL = mid + side; sigR = mid - side;
-			Out.ar(out, Balance2.ar(sigL * env * amp, sigR * env * amp, pan));
+			sig = Mix.new(voices) * 0.35;
+			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
 		context.server.sync;

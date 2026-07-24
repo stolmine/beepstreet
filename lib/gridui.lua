@@ -115,6 +115,7 @@ end
 
 -- ── input ─────────────────────────────────────────────────────────────────────
 function GridUI.key(x, y, z)
+  if not vfn then return false end   -- grid press before init(): ignore safely
   local n = ncols()
   -- step block (or keyboard while held)
   if x >= 1 and x <= STEP_COLS and y >= 1 and y <= STEP_ROWS then
@@ -202,7 +203,7 @@ end
 
 -- ── render ──────────────────────────────────────────────────────────────────
 function GridUI.redraw()
-  if not g then return end
+  if not g or not vfn then return end
   local n = ncols()
   g:all(0)
   -- step block or keyboard
