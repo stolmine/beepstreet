@@ -86,8 +86,8 @@ Engine_Beepstreet : CroneEngine {
 			src = (BrownNoise.ar * (1 - w)) + (WhiteNoise.ar * w);
 			holdRate = 24000 * (0.5 ** ((p1.clip(1, 2) - 1) * 5.7));           // 24k (transparent) -> ~460Hz (crackle)
 			sig = Latch.ar(src, Impulse.ar(holdRate)) * (1 + ((p1.clip(1, 2) - 1) * 1.2)); // makeup: crush loses band energy
-			c = p2.clip(40, 18000);
-			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]);
+			c = p2.clip(40, 18000).min(holdRate * 4);   // crushed spectrum dies above ~4x hold rate: keep Z on the live part
+			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]).softclip; // tame resonant crackle spikes, deterministic
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
