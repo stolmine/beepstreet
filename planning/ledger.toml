@@ -27,12 +27,13 @@ note = "beepstreet federates into brain once its remote is in brain/agent/repos.
 [[item]]
 id = "script-scaffold"
 title = "Thin beepstreet.lua boots on device and requires lib/ modules"
-status = "wip"
-modified = "2026-07-23T18:03:33-05:00"
+status = "done"
+modified = "2026-07-23T19:06:18-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "infra"
 verify = { kind = "manual", ref = "load beepstreet on norns; reaches an idle UI without error; K3/grid press sounds the test voice" }
-note = "Keep beepstreet.lua a bootstrap; real code in lib/*.lua per modular-file rule. Scaffold written: beepstreet.lua + lib/voices.lua + lib/Engine_Beepstreet.sc (one \\beep test voice, Lua-forward macro map). Awaits on-device load to attest."
+attested = "2026-07-23: loaded on the physical norns, working and audible. Clean init (log: register_commands count 1, trig ffffffff, script init no error); K3/grid triggers the \\beep voice; E3/K2 move X/Y/Z. Engine registered after sclang recompile."
+note = "Keep beepstreet.lua a bootstrap; real code in lib/*.lua per modular-file rule. Gotcha proven on-device: a new/edited .sc engine needs a sclang recompile (;restart / SYSTEM>RESTART) before the running instance registers it; Lua-only edits just reload."
 
 [[item]]
 id = "params-persistence"
