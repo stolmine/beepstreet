@@ -25,11 +25,13 @@ local resolvers = {
     return { amp = 0.30, atk = s.atk, rel = s.rel, curve = s.curve,
              p1 = lerp(0, 18, m.x), p2 = lerp(0, 0.30, m.z), p3 = 0 }
   end,
-  -- clean sub bass, gated (drone window): X = harmonic brightness, Z = sub level
+  -- clinical sub bass, gated: pure sine + integer-ratio FM (no filter), Z = sub level
   bass = function(m)
-    local s = shape(m.y, 0.03, 3.00)   -- rel = gate/window length (not a pluck decay)
+    local s = shape(m.y, 0.03, 3.00)   -- rel = gate/window length (drone, not pluck)
     return { amp = 0.34, atk = s.atk, rel = s.rel, curve = s.curve,
-             p1 = xlerp(60, 12000, m.x), p2 = lerp(0, 1, m.z), p3 = lerp(0, 8, m.x) }
+             p1 = lerp(0, 3, m.x),  -- FM index (subtle harmonic edge; keep sub-dominant)
+             p2 = lerp(0, 1, m.z),   -- sub-octave level
+             p3 = 0 }
   end,
   -- bright ultrasonic click (Ikeda): X = tonal->noise, Z = ring/center 2-10k
   click1 = function(m)
@@ -55,11 +57,14 @@ local resolvers = {
     return { amp = 0.34, atk = 0.0, rel = s.rel, curve = s.curve,
              p1 = lerp(0, 1, m.x), p2 = xlerp(0.02, 0.20, m.z), p3 = 0 }
   end,
-  -- additive drone: X = consonance->dissonance, Z = partial count + rolloff
+  -- additive/FM chord drone (Fell): stacked FM voices, irrational modulator ratios.
+  -- X = FM index (consonant sine chord -> dense inharmonic clang), Z = brightness tilt
   additive = function(m)
     local s = shape(m.y, 0.02, 3.00)   -- rel = gate/window length (drone, not pluck)
-    return { amp = 0.24, atk = s.atk, rel = s.rel, curve = s.curve,
-             p1 = m.x, p2 = lerp(1, 8, m.z), p3 = lerp(2.0, 0.4, m.z) }
+    return { amp = 0.22, atk = s.atk, rel = s.rel, curve = s.curve,
+             p1 = lerp(0, 8, m.x),  -- FM index
+             p2 = m.z,               -- brightness tilt (upper-voice level)
+             p3 = 0 }
   end,
 }
 

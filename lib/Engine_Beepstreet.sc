@@ -28,16 +28,16 @@ Engine_Beepstreet : CroneEngine {
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// bass — clean sine fundamental + sub octave + optional saw harmonics, GATED.
-		//   p1 = cutoff/brightness (Hz), p2 = sub level (0..1), p3 = detune (cents)
-		//   env is a gate/window (Env.linen): rel = flat sustain length, shaped by Y.
-		SynthDef(\bass, { arg out, freq=110, amp=0.34, atk=0.01, rel=0.5, curve= -4, pan=0, p1=800, p2=0.5, p3=0;
-			var fund, sub, harm, sig, env;
-			fund = SinOsc.ar(freq);
+		// bass — clinical: pure sine fundamental + integer-ratio FM (harmonic edge, no
+		// filter) + sub octave, GATED. Spectral-domain brightness = FM index, not a
+		// cutoff sweep — the "clinical/digital" not "synthy" character.
+		//   p1 = FM index (0..6), p2 = sub level (0..1)
+		SynthDef(\bass, { arg out, freq=110, amp=0.34, atk=0.01, rel=0.5, curve= -4, pan=0, p1=0, p2=0.5, p3=0;
+			var fund, sub, sig, env;
+			fund = SinOsc.ar(freq, SinOsc.ar(freq * 2, 0, p1.clip(0, 6)));   // integer-ratio PM = clean harmonics
 			sub  = SinOsc.ar(freq * 0.5) * p2.clip(0, 1);
-			harm = RLPF.ar(Saw.ar(freq) + Saw.ar(freq * (2 ** (p3 / 1200))), p1.clip(50, 16000), 0.5) * 0.3;
-			sig  = (fund * 0.5) + (sub * 0.8) + harm;
-			sig  = (sig * 0.7).tanh;
+			sig  = (fund * 0.6) + (sub * 0.9);
+			sig  = (sig * 0.85).tanh;                                        // gentle safety only, no drive
 			env  = EnvGen.kr(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
@@ -89,18 +89,23 @@ Engine_Beepstreet : CroneEngine {
 
 		// additive — 8 partials, inharmonic stretch + rolloff + count.
 		//   p1 = dissonance (inharmonicity), p2 = partial count (1..8), p3 = rolloff
-		//   env is a gate/window (Env.linen): rel = flat sustain length (drone), shaped by Y.
-		SynthDef(\additive, { arg out, freq=220, amp=0.24, atk=0.01, rel=0.6, curve= -4, pan=0, p1=0, p2=8, p3=1;
-			var sig, env, n = 8, partials;
+		// additive/FM chord (Fell): four stacked FM voices at a chord voicing, each with
+		// an IRRATIONAL modulator ratio so the sidebands are inharmonic. X = FM index,
+		// walking a consonant sine chord (index 0) into dense metallic clang. Dissonance
+		// is real inharmonic partials, not a stretched harmonic series.
+		//   env is a gate/window (Env.linen): rel = flat sustain length (drone).
+		//   p1 = FM index (0..8), p2 = brightness tilt (upper-voice level)
+		SynthDef(\additive, { arg out, freq=220, amp=0.22, atk=0.01, rel=0.6, curve= -4, pan=0, p1=0, p2=0.5, p3=0;
+			var sig, env, voices;
+			var ratios = [1, 1.5, 2.0, 3.0];        // chord: root, fifth, octave, twelfth
+			var mods   = [1.41, 1.73, 2.76, 3.16];  // irrational modulator ratios -> inharmonic
 			env = EnvGen.kr(Env.linen(atk, rel, 0.02, 1, curve), doneAction: Done.freeSelf);
-			partials = Array.fill(n, { arg i;
-				var k = i + 1;
-				var ratio = k * (1 + (p1 * (k - 1) * 0.06));
-				var gate = (p2 >= k);
-				var a = gate * (1 / (k ** p3));
-				SinOsc.ar(freq * ratio) * a;
+			voices = Array.fill(4, { arg i;
+				var c = freq * ratios[i];
+				var lvl = (1 / (i + 1)) * (1 + (p2 * i * 0.6));   // Z lifts the upper voices
+				PMOsc.ar(c, c * mods[i], p1.clip(0, 8)) * lvl;
 			});
-			sig = Mix.new(partials) * (2 / n);
+			sig = Mix.new(voices) * 0.35;
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
