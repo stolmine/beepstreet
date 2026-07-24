@@ -154,11 +154,12 @@ verify = { kind = "manual", ref = "grid selection sets a discrete pitch per voic
 [[item]]
 id = "step-sequencer"
 title = "4x8 grid step sequencer: tap to instantiate a step"
-status = "todo"
-modified = "2026-07-23T17:03:19-05:00"
+status = "wip"
+modified = "2026-07-23T19:16:30-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "seq"
 verify = { kind = "manual", ref = "tapping a pad toggles a step that then triggers the voice in time" }
+note = "lib/gridui.lua: 4x8 block (rows=beats, cols=8 thirty-seconds/beat), tap toggles step, playhead sweeps on step-advance, 16th cols brighter. Shared pattern table read by seq, edited by gridui. Seeded 4 downbeats on load (persistence is a later item)."
 
 [[item]]
 id = "param-lock"

@@ -3,35 +3,44 @@
 -- Thin entry point (bootstrap only). Real logic lives in lib/*.lua and
 -- lib/Engine_Beepstreet.sc. See docs/macro-model.md and docs/sonic-targets.md.
 --
--- Clock/transport milestone: the sequencer plays itself at 32nd resolution,
--- tempo-synced, triggering the beep voice through the Lua-forward macro map.
+-- Step-sequencer milestone: author a 4x8 pattern on the grid; the clock plays it
+-- at 32nd resolution through the beep voice, playhead sweeping the grid.
 
 engine.name = 'Beepstreet'
 
 local voices = include('beepstreet/lib/voices')
 local Seq    = include('beepstreet/lib/seq')
+local gridui = include('beepstreet/lib/gridui')
 
 local g = grid.connect()          -- grid-safe: returns an object even with none attached
 local xyz = { x = 0.30, y = 0.30, z = 0.00 }   -- live macro coordinate (test voice)
 local sel = 'x'                   -- which axis E3 edits
+local pattern = {}                -- 32 steps: false = off, {} = on (room for plocks)
 local seq
 local screen_dirty = true
 
 local AXES = { 'x', 'y', 'z' }
 local YROW = { x = 34, y = 44, z = 54 }
 
-local function do_trig(accent)
+local function do_trig()
   local p = voices.resolve('beep', xyz)
-  local amp = p.amp * (accent and 1.0 or 0.6)
-  engine.trig(p.freq, amp, p.atk, p.rel, p.curve, p.pan, p.detune, p.fmIndex)
+  engine.trig(p.freq, p.amp, p.atk, p.rel, p.curve, p.pan, p.detune, p.fmIndex)
 end
 
 function init()
+  -- seed: four downbeats (col 1 of each beat-row) so there's an audible pulse on load
+  for i = 1, 32 do pattern[i] = false end
+  for _, i in ipairs({ 1, 9, 17, 25 }) do pattern[i] = {} end
+
   seq = Seq.new{
-    on_trig = function(st) do_trig(st.accent) end,
-    on_step = function(_) screen_dirty = true end,
+    pattern = pattern,
+    on_trig = function(_) do_trig() end,
+    on_step = function(_) screen_dirty = true; gridui.redraw() end,
   }
-  -- dirty-flag redraw loop at ~15fps
+  gridui.init(g, pattern, seq)
+  gridui.redraw()
+
+  -- dirty-flag screen redraw loop at ~15fps
   clock.run(function()
     while true do
       clock.sleep(1 / 15)
@@ -51,7 +60,7 @@ function key(n, z)
     if n == 2 then
       seq:toggle()
     elseif n == 3 then
-      do_trig(true)
+      do_trig()
     end
     screen_dirty = true
   end
@@ -70,9 +79,15 @@ function enc(n, d)
   screen_dirty = true
 end
 
--- any grid press triggers the test voice (real grid UI comes later)
+-- grid: taps in the 4x8 block author steps; other presses reserved for later
 g.key = function(x, y, z)
-  if z == 1 then do_trig(true) end
+  gridui.key(x, y, z)
+end
+
+local function active_steps()
+  local n = 0
+  for i = 1, 32 do if pattern[i] then n = n + 1 end end
+  return n
 end
 
 function redraw()
@@ -83,7 +98,7 @@ function redraw()
   screen.move(4, 21); screen.text(seq and seq:is_running() and '\u{25b6} play' or '\u{25a0} stop')
   screen.level(3)
   screen.move(52, 21);  screen.text(string.format('%.0f bpm', clock.get_tempo()))
-  screen.move(100, 21); screen.text('s' .. ((seq and seq.pos) or 0))
+  screen.move(100, 21); screen.text(active_steps() .. 'st')
   -- macro axes
   for _, ax in ipairs(AXES) do
     local yy = YROW[ax]
@@ -92,7 +107,7 @@ function redraw()
     screen.move(20, yy); screen.text(string.format('%.2f', xyz[ax]))
     screen.rect(48, yy - 4, 72 * xyz[ax], 3); screen.fill()
   end
-  screen.level(3); screen.move(4, 62); screen.text('K2 play  E1 bpm  E2/3 axis  K3 trig')
+  screen.level(3); screen.move(4, 62); screen.text('grid: tap steps  K2 play  E1 bpm')
   screen.update()
 end
 
