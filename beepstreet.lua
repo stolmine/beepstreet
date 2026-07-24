@@ -8,13 +8,15 @@
 
 engine.name = 'Beepstreet'
 
+local musicutil = require 'musicutil'
 local voices = include('beepstreet/lib/voices')
 local Seq    = include('beepstreet/lib/seq')
 local gridui = include('beepstreet/lib/gridui')
 
 local g = grid.connect()          -- grid-safe: returns an object even with none attached
 local xyz = { x = 0.30, y = 0.30, z = 0.00 }   -- GLOBAL macro coordinate
-local voice = { vol = 1.0, pan = 0.0, prob = 1.0 }  -- per-voice micro params (quadrant faders)
+local voice = { vol = 1.0, pan = 0.0, prob = 1.0,   -- per-voice micro params (quadrant faders)
+                pitch = 48, root = 24, scale = 'Natural Minor' }  -- pitch keyboard state
 local sel = 'x'                   -- which axis E3 edits
 local pattern = {}                -- 32 steps: false = off, table = on (may carry plocks)
 local seq
@@ -26,16 +28,17 @@ local YROW = { x = 34, y = 44, z = 54 }
 -- resolve + trigger: per-step plocks (x/y/z, vol/pan/prob) over global/per-voice
 local function do_trig(st)
   local m = xyz
-  local vol, pan = voice.vol, voice.pan
+  local vol, pan, pitch = voice.vol, voice.pan, voice.pitch
   if type(st) == 'table' then
     local prob = st.prob or voice.prob                 -- probability gates sequenced steps only
     if prob < 1 and math.random() > prob then return end
     m = { x = st.x or xyz.x, y = st.y or xyz.y, z = st.z or xyz.z }
     if st.vol ~= nil then vol = st.vol end
     if st.pan ~= nil then pan = st.pan end
+    if st.pitch ~= nil then pitch = st.pitch end
   end
   local p = voices.resolve('beep', m)
-  engine.trig(p.freq, p.amp * vol, p.atk, p.rel, p.curve, pan, p.detune, p.fmIndex)
+  engine.trig(musicutil.note_num_to_freq(pitch), p.amp * vol, p.atk, p.rel, p.curve, pan, p.detune, p.fmIndex)
 end
 
 function init()
@@ -98,7 +101,12 @@ function redraw()
   screen.move(16, 21); screen.text(string.format('%.0f bpm', clock.get_tempo()))
   local held = gridui.held()
   screen.move(70, 21)
-  screen.text(held and ('plock s' .. held) or 'global')
+  if held then
+    local st = pattern[held]
+    screen.text('s' .. held .. ' ' .. musicutil.note_num_to_name((st and st.pitch) or voice.pitch, true))
+  else
+    screen.text(musicutil.note_num_to_name(voice.pitch, true))
+  end
   -- macro axes (show what the strips are editing: held plock or global)
   for _, ax in ipairs(AXES) do
     local yy = YROW[ax]

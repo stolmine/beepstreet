@@ -144,12 +144,12 @@ note = "Core UX conceit: X/Y/Z are uniform axis names; each voice defines what a
 [[item]]
 id = "pitch-select-grid"
 title = "Discrete pitch selected via grid (not a knob)"
-status = "todo"
-modified = "2026-07-23T20:16:24-05:00"
+status = "wip"
+modified = "2026-07-23T20:39:01-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "voice"
 verify = { kind = "manual", ref = "grid selection sets a discrete pitch per voice/step" }
-note = "DESIGN LOCKED (docs/grid-layout.md): modal keyboard — hold a step, the 31 non-held step pads become a scale-quantized keyboard; tap sets that step's absolute pitch. Octave -/+ on the global row (row 8) during hold; keyboard auto-centers on the step's current note. Root+scale per-voice (musicutil). Next increment."
+note = "lib/keyboard.lua (musicutil scale window, 32 pads bottom-low→top-high). Hold a step past 0.28s → step block becomes the keyboard; tap sets that step's absolute pitch (turns it on); octave -/+ on row 8; window auto-centers on the step's note; root landmarks lit. Pitch decoupled from Z (Z now = FM grit; freq from note_num_to_freq). Per-voice root/scale (default C1 Natural Minor, default note C3). Awaits on-device attest."
 
 # ── sequencing ──────────────────────────────────────────────────────────────
 [[item]]

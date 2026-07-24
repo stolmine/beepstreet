@@ -19,18 +19,15 @@ local function xlerp(a, b, t) return a * (b / a) ^ t end   -- exponential (times
 local resolvers = {
   beep = function(m)
     return {
-      -- X: weight -> grit
+      -- X: detune width
       detune  = lerp(0, 18, m.x),        -- cents of osc2 detune
-      fmIndex = lerp(0, 0.30, m.x),      -- touch of cross-FM
+      -- Z: cross-FM grit (pitch is set on the grid keyboard now, no longer Z)
+      fmIndex = lerp(0, 0.30, m.z),
       -- Y: duration / shape (steep-log defined -> smooth)
       atk     = xlerp(0.0005, 0.05, m.y),-- 0.5 ms -> 50 ms
       rel     = xlerp(0.02, 1.20, m.y),  -- short -> long
       curve   = lerp(-8, 0, m.y),        -- steep log -> linear/smooth
-      -- Z: register (real discrete pitch will replace this via the grid)
-      freq    = xlerp(55, 220, m.z),
-      -- fixed for now
       amp     = 0.30,
-      pan     = 0,
     }
   end,
 }

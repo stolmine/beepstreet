@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**25 items** — 5 done, 3 wip, 17 todo. *Rendered 2026-07-23.*
+**25 items** — 5 done, 4 wip, 16 todo. *Rendered 2026-07-23.*
 
 ## Engine (SuperCollider DSP)
 
@@ -23,7 +23,7 @@ check`): a `done` item must have a real test or its named artifact.*
 
 | | id | item | verify |
 |---|---|---|---|
-|   | `pitch-select-grid` | Discrete pitch selected via grid (not a knob) | manual · 2026-07-23 |
+| ~ | `pitch-select-grid` | Discrete pitch selected via grid (not a knob) | manual · 2026-07-23 |
 |   | `xyz-macro-lattice` | X/Y/Z macros select coordinates from a per-voice interacting lattice | manual · 2026-07-23 |
 
 ## Sequencing (patterns, param-locks)
