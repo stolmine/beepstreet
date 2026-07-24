@@ -71,18 +71,26 @@ Engine_Beepstreet : CroneEngine {
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 
-		// noise — colour arc brown->white->rate-crushed digital crackle, through an LP/BP/HP morph.
-		//   p1 = colour 0..2 (0 brown, 1 white, 1..2 latch sample-rate crush toward ~750Hz hold rate)
+		// noise — Rauschen-style model morph: white -> crushed -> crackle -> velvet ->
+		// particle, tent-weight crossfade on X, through the LP/BP/HP morph (Z). Textures
+		// are pitch-tracked: crush hold rate / velvet density / particle rate follow the
+		// grid freq (sequenceable texture rate, stock UGens only).
+		//   p1 = model position 0..4 (white/crush/crackle/velvet/particle)
 		//   p2 = filter center, p3 = filter morph (0 LP..0.5 BP..1 HP)
 		SynthDef(\noise, { arg out, freq=440, amp=0.28, atk=0.005, rel=0.2, curve= -4, pan=0, p1=0, p2=4000, p3=0;
-			var src, holdRate, sig, env, c, w;
+			var env, pos, w, white, crush, crackle, velvet, ptrig, particle, sig, c;
 			env = EnvGen.ar(Env.perc(atk, rel, 1, curve), doneAction: Done.freeSelf);
-			w = p1.clip(0, 1);
-			src = (BrownNoise.ar * (1 - w)) + (WhiteNoise.ar * w);
-			holdRate = 24000 * (0.5 ** ((p1.clip(1, 2) - 1) * 5.7));           // 24k (transparent) -> ~460Hz (crackle)
-			sig = Latch.ar(src, Impulse.ar(holdRate)) * (1 + ((p1.clip(1, 2) - 1) * 1.2)); // makeup: crush loses band energy
-			c = p2.clip(40, 18000).min(holdRate * 4);   // crushed spectrum dies above ~4x hold rate: keep Z on the live part
-			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]).softclip; // tame resonant crackle spikes, deterministic
+			pos = p1.clip(0, 4);
+			w = Array.fill(5, { arg i; (1 - (pos - i).abs).clip(0, 1) });
+			white = WhiteNoise.ar;
+			crush = Latch.ar(WhiteNoise.ar, Impulse.ar((freq * 8).clip(400, 8000)));
+			crackle = Crackle.ar(1.9) * 6;
+			velvet = Dust2.ar((freq * 6).clip(300, 6000)) * 5;
+			ptrig = Dust.ar((freq * 0.8).clip(15, 200));
+			particle = Ringz.ar(ptrig, TExpRand.ar(300, 5000, ptrig), 0.03) * 3;
+			sig = (white * w[0]) + (crush * w[1]) + (crackle * w[2]) + (velvet * w[3]) + (particle * w[4]);
+			c = p2.clip(40, 18000);
+			sig = SelectX.ar(p3.clip(0, 1) * 2, [ RLPF.ar(sig, c, 0.55), BPF.ar(sig, c, 0.5), RHPF.ar(sig, c, 0.55) ]).softclip; // tame spikes, deterministic
 			Out.ar(out, Pan2.ar(sig * env * amp, pan));
 		}).add;
 

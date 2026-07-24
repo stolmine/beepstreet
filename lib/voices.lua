@@ -51,11 +51,12 @@ local resolvers = {
     return { amp = 0.30, atk = 0.0, rel = s.rel, curve = s.curve,
              p1 = m.x, p2 = xlerp(400, 4000, m.z), p3 = 0 }
   end,
-  -- noise: X = colour arc brown -> white -> rate-crushed crackle, Z = center + LP/BP/HP morph
+  -- noise (Rauschen model morph): X = white -> crush -> crackle -> velvet -> particle
+  -- (tent-weight stations), Z = center + LP/BP/HP morph. Texture rates track pitch.
   noise = function(m)
     local s = shape(m.y, 0.005, 1.00)
     return { amp = 0.28, atk = s.atk, rel = s.rel, curve = s.curve,
-             p1 = m.x * 2, p2 = xlerp(200, 12000, m.z), p3 = m.z }
+             p1 = m.x * 4, p2 = xlerp(200, 12000, m.z), p3 = m.z }
   end,
   -- kick (Ikeda bare stab -> Tessera clang): X = modal lattice/fold (pure 40Hz-style
   -- sub stab -> compound inharmonic clang), Z = pitch-decay. Y = body length (the

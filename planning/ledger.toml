@@ -120,11 +120,11 @@ note = "X = consonance↔dissonance harmonic-complexity sweep (target dissonance
 id = "voice-noise"
 title = "Noise voice with X/Y/Z macros"
 status = "wip"
-modified = "2026-07-23T23:36:39-05:00"
+modified = "2026-07-24T10:39:01-05:00"
 created = "2026-07-23T17:03:19-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "trigger noise; macros vary colour/shape" }
-note = "X = colour arc: brown -> white -> Latch rate-crush to ~460Hz hold (raster-noton digital crackle, deterministic) with makeup gain. Z = filter center 200-12k + LP/BP/HP morph (rq .55). Harness: Z bands 32% low -> 99% high; X flat/band shifts + audible aliasing character; grit zone x~0.8 is a louder sweet spot (in-band energy). Audition the crush zone."
+note = "Superseded by noise-models (Rauschen-style 5-station model morph); see that item for the current design + measurements."
 
 [[item]]
 id = "voice-kick"
@@ -343,12 +343,12 @@ note = "We address a 1-bar 32nd grid, so Y (gate/window length) coarse stops sho
 [[item]]
 id = "noise-models"
 title = "Noise: multiple algorithms interpolable through a macro"
-status = "todo"
-modified = "2026-07-24T10:13:03-05:00"
+status = "wip"
+modified = "2026-07-24T10:39:01-05:00"
 created = "2026-07-24T10:04:32-05:00"
 area = "engine"
 verify = { kind = "manual", ref = "a macro morphs the noise voice through several distinct noise models" }
-note = "Crib from er-301-habitat Rauschen (mods/spreadsheet/Rauschen.cpp/.h/.lua) — macro-parametric noise unit. Wanted models: crackle, white, henon, cellular, particle, velvet. Interpolate THROUGH the models on a macro (not just select). Extends voice-noise. Concrete recipe (per-model SC ports: Decimator/Crackle/HenonN/Dust+Ringz/velvet grains/CA-UGen + tent-weight morph): docs/voice-recipes.md."
+note = "Built per docs/voice-recipes.md, STOCK UGens only (no sc3-plugins on device): X = tent-weight morph white -> crush (Latch, hold rate = freq*8) -> crackle (Crackle 1.9) -> velvet (Dust2, density = freq*6) -> particle (Dust->Ringz, per-hit TExpRand freq). Texture rates pitch-track the grid note. Z = LP/BP/HP morph, Y = duration. Harness: station rms balanced -45/-40/-44/-45/-37, peaks -15..-22, no dead points at filter extremes. Henon/cellular skipped (need custom UGens; approximations added nothing distinct). Station distinction is temporal — needs ears."
 
 [[item]]
 id = "additive-motion-stereo"
