@@ -26,7 +26,8 @@ function GridUI.key(x, y, z)
   if z ~= 1 then return false end
   if x >= 1 and x <= COLS and y >= 1 and y <= ROWS then
     local s = step_of(x, y)
-    pattern[s] = pattern[s] and false or {}   -- toggle: {} = on (room for plocks), false = off
+    -- toggle on/off (NOT `a and false or b` — that always yields b in Lua)
+    if pattern[s] then pattern[s] = false else pattern[s] = {} end  -- {} = on (room for plocks)
     GridUI.redraw()
     return true
   end

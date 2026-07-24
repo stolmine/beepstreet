@@ -28,9 +28,7 @@ local function do_trig()
 end
 
 function init()
-  -- seed: four downbeats (col 1 of each beat-row) so there's an audible pulse on load
-  for i = 1, 32 do pattern[i] = false end
-  for _, i in ipairs({ 1, 9, 17, 25 }) do pattern[i] = {} end
+  for i = 1, 32 do pattern[i] = false end   -- start empty; author on the grid
 
   seq = Seq.new{
     pattern = pattern,
