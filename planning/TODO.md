@@ -5,7 +5,7 @@ beepstreet TODO (generated — DO NOT EDIT)
 ledger, not this file. Status/verification are gate-enforced (`scripts/dev
 check`): a `done` item must have a real test or its named artifact.*
 
-**29 items** — 6 done, 4 wip, 19 todo. *Rendered 2026-07-23.*
+**30 items** — 7 done, 4 wip, 19 todo. *Rendered 2026-07-23.*
 
 ## Engine (SuperCollider DSP)
 
@@ -75,4 +75,5 @@ check`): a `done` item must have a real test or its named artifact.*
 | ✓ | `clock-transport` | Clock/transport drives sequencer at 32nd-note resolution | manual *(attested)* · 2026-07-23 |
 | ✓ | `ledger-regime` | Ledger + gate regime stood up; scripts/dev check exits 0 | manual *(attested)* · 2026-07-23 |
 | ✓ | `script-scaffold` | Thin beepstreet.lua boots on device and requires lib/ modules | manual *(attested)* · 2026-07-23 |
+| ✓ | `voice-harness` | Autonomous voice-tuning harness: NRT render -> essentia -> compare to targets | manual *(attested)* · 2026-07-23 |
 
